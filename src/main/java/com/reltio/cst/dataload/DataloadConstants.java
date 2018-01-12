@@ -49,15 +49,9 @@ public final class DataloadConstants {
 
     public static final String DEFAULT_BCC_EMAIL = "ganesh.palanisamy@reltio.com";
 
-    public static final String SMTP_USERNAME = "AKIAJ2ZPXWS5IC3HYENA"; // Replace
-    // with
-    // your SMTP
-    // username.
-    public static final String SMTP_PASSWORD = ""; // Replace
-    // with
-    // your
-    // SMTP
-    // password.
+    public static final String SMTP_USERNAME = "AKIAIFAFAG7PXAZS232Q"; // Replace with your SMTP username.
+    public static final String SMTP_PASSWORD = "AjUQdsmo5nSFNxRbjUG8irMsZFFQmGR04mcikETEO+/c"; // Replace with your SMTP password.
+
 
     public static final String[] FAILED_LOG_FILE_HEADER = {"Crosswalk Type",
             "Crosswalk Value", "Error Code", "Error Message",
