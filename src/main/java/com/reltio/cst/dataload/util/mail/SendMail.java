@@ -89,9 +89,8 @@ public class SendMail {
 				// Send the message.
 
 				// Connect to Amazon SES using the SMTP username and password.
-				transport.connect(DataloadConstants.MAIL_SMTP_HOST,
-						DataloadConstants.SMTP_USERNAME,
-						DataloadConstants.SMTP_PASSWORD);
+				transport.connect(DataloadConstants.MAIL_SMTP_HOST,dataloaderInput.getSmtp_username(),dataloaderInput.getSmtp_password());
+//				transport.connect(DataloadConstants.MAIL_SMTP_HOST,DataloaderInput.SMTP_USERNAME,DataloadConstants.SMTP_PASSWORD);
 				// Send the email.
 				transport.sendMessage(msg, msg.getAllRecipients());
 			}
