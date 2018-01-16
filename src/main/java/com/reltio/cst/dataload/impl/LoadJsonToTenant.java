@@ -80,8 +80,7 @@ public class LoadJsonToTenant {
                 || !checkNull(dataloaderInput.getServerHostName())
                 || !checkNull(dataloaderInput.getTenantId())
                 || !checkNull(dataloaderInput.getFailedRecordsFileName())
-                || !checkNull(String.valueOf(dataloaderInput
-                .getSendMailFileName()))
+                || !checkNull(String.valueOf(dataloaderInput.getSendMailFileName()))
                 || !checkNull(String.valueOf(dataloaderInput.getSendMailFlag()))) {
             System.out
                     .println("One or more required Job configuration properties are missing... Please Verify and update the Job configuration file...");

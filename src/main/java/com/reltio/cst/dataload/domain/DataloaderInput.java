@@ -29,6 +29,8 @@ public class DataloaderInput implements Serializable {
 	private String dataType;
 	private String username;
 	private String password;
+	private String smtp_username;
+	private String smtp_password;
 	private String authURL;
 	private String userComments;
 	private Integer queueThreshold;
@@ -112,6 +114,9 @@ public class DataloaderInput implements Serializable {
 		dataType = properties.getProperty("TYPE_OF_DATA");
 		username = properties.getProperty("USERNAME");
 		password = properties.getProperty("PASSWORD");
+		smtp_username = properties.getProperty("SMTP_USERNAME");
+		smtp_password = properties.getProperty("SMTP_PASSWORD");
+		
 		if (!checkNull(properties.getProperty("MAX_QUEUE_SIZE"))) {
 			setQueueThreshold(MAX_QUEUE_SIZE);
 		} else {
@@ -253,6 +258,22 @@ public class DataloaderInput implements Serializable {
 		this.password = password;
 	}
 
+	public String getSmtp_username() {
+		return smtp_username;
+	}
+
+	public void setSmtp_username(String smtp_username) {
+		this.smtp_username = smtp_username;
+	}
+
+	public String getSmtp_password() {
+		return smtp_password;
+	}
+
+	public void setSmtp_password(String smtp_password) {
+		this.smtp_password = smtp_password;
+	}
+	
 	public String getAuthURL() {
 		return authURL;
 	}
