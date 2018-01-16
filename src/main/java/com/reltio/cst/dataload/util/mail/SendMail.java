@@ -1,6 +1,8 @@
 package com.reltio.cst.dataload.util.mail;
 
-import java.util.Properties;
+import com.reltio.cst.dataload.DataloadConstants;
+import com.reltio.cst.dataload.domain.DataloaderInput;
+import com.reltio.cst.dataload.impl.LoadJsonToTenant;
 
 import javax.mail.Message;
 import javax.mail.Multipart;
@@ -10,10 +12,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-
-import com.reltio.cst.dataload.DataloadConstants;
-import com.reltio.cst.dataload.domain.DataloaderInput;
-import com.reltio.cst.dataload.impl.LoadJsonToTenant;
+import java.util.Properties;
 
 /**
  * Created by diptam on 8/13/2015.
@@ -157,7 +156,7 @@ public class SendMail {
 	protected String formHTML(DataloaderInput dataloaderInput) {
 
 		String CONTENT = constructEmailBody(dataloaderInput);
-		String BODY = "<html> <body> <div style=\"width: 710px; height:280px; background: #F4F4F4\">     <div style=\"margin-left: 50px; width: 600px;\">         <img src=\"http://s3.amazonaws.com/reltio.ui.static/reltio.png\" style=\"width: 130px; padding-top: 10px;margin-bottom:20px;padding-left: 10px; height: 40px; \"              alt=\"Reltio\"/>         <div style=\"border: 1px solid #9ECAE3; margin-bottom:20px\">     <div style=\"width: 599px; height: 50px; background: #9ECAE3;vertical-align: middle;\">         <div style=\"padding-top: 12px; padding-left: 15px; width:350px; font-family:Arial, sans-serif; font-size:20px;color: #333333; \">            <!-- theme-->    Dataloading Status Update           <!--theme-->         </div>     </div>     <div>         <div style=\"min-height: 75px; width: 598px; background: #FFFFFF; border-bottom:solid #E5ECEF; padding-top: 0px\">             <!--subrecord-->              "
+		String BODY = "<html> <body> <div style=\"width: 710px; height:450px; background: #F4F4F4\">     <div style=\"margin-left: 50px; width: 600px;\">         <img src=\"http://s3.amazonaws.com/reltio.ui.static/reltio.png\" style=\"width: 130px; padding-top: 10px;margin-bottom:20px;padding-left: 10px; height: 40px; \"              alt=\"Reltio\"/>         <div style=\"border: 1px solid #9ECAE3; margin-bottom:20px\">     <div style=\"width: 599px; height: 50px; background: #9ECAE3;vertical-align: middle;\">         <div style=\"padding-top: 12px; padding-left: 15px; width:350px; font-family:Arial, sans-serif; font-size:20px;color: #333333; \">            <!-- theme-->    Dataloading Status Update           <!--theme-->         </div>     </div>     <div>         <div style=\"min-height: 75px; width: 598px; background: #FFFFFF; border-bottom:solid #E5ECEF; padding-top: 0px\">             <!--subrecord-->              "
 				+ CONTENT
 				+ "             <!-- subrecord-->             </div>      </div> </div>     </div>       <div id=\"footer\" style=\"margin-left: 64px; width: 600px; height: 40px; background: #F4F4F4\">         <div style=\"font-family:Arial, sans-serif; color: #999999; font-size: 12px\">      </div>         <div style=\"font-family:Arial, sans-serif;color: #999999; font-size: 12px\"></div>     </div>  </div> </body> </html> ";
 		return BODY;
