@@ -4,7 +4,7 @@
     <groupId>com.reltio.cst</groupId>
     <artifactId>dataload-processor</artifactId>
     <name>dataload-processor</name>
-    <version>2.5.3</version>
+    <version>2.5.4</version>
 
     <description>This project handles the loading data from JSON file to Reltio tenant</description>
 
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>com.reltio.cst</groupId>
             <artifactId>reltio-cst-core</artifactId>
-            <version>1.4.1</version>
+            <version>1.4.2</version>
         </dependency>
 
         <dependency>

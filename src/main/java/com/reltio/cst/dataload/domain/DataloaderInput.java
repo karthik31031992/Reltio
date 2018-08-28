@@ -1,15 +1,10 @@
 package com.reltio.cst.dataload.domain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static com.reltio.cst.dataload.DataloadConstants.*;
-import static com.reltio.cst.dataload.util.DataloadFunctions.*;
+import static com.reltio.cst.dataload.util.DataloadFunctions.checkNull;
 
 /***
  * This class file holds all the input data provided by the user to execute the
@@ -107,7 +102,7 @@ public class DataloaderInput implements Serializable {
 		failedRecordsFileName = properties
 				.getProperty("FAILED_RECORD_FILE_PATH");
 
-		serverHostName = properties.getProperty("DATALOAD_SERVER_HOST");
+		serverHostName = properties.getProperty("ENVIRONMENT_URL");
 		tenantId = properties.getProperty("TENANT_ID");
 		setDataloadType(properties.getProperty("DATALOAD_TYPE")); // Entities/Relations
 
