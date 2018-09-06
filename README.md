@@ -12,7 +12,7 @@ v2.5.4
 Last Updated Date  : 28/08/2018
 LUB                : Vignesh Chandran
 Version            : 2.5.4
-Description        : Update on the reltio-core-cst v1.4.1
+Description        : Update on the reltio-core-cst v1.4.2
                      Changes in the properties file for ROCS standarization DATALOAD_SERVER_HOST renamed to ENVIRONMENT_URL
 
 v2.5.3
