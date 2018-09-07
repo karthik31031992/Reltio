@@ -93,14 +93,14 @@ public class DataloaderInput implements Serializable {
 						.getProperty("THREAD_COUNT"));
 			}
 
-		fileName = properties.getProperty("JSON_FILE_PATH");
+        fileName = properties.getProperty("JSON_FILE");
 		jsonFileType = properties.getProperty("JSON_FILE_TYPE");
 		if (jsonFileType == null || jsonFileType.trim().isEmpty()) {
 			jsonFileType = JSON_FILE_TYPE_PIPE;
 		}
 
 		failedRecordsFileName = properties
-				.getProperty("FAILED_RECORD_FILE_PATH");
+                .getProperty("FAILED_RECORD_FILE");
 
 		serverHostName = properties.getProperty("ENVIRONMENT_URL");
 		tenantId = properties.getProperty("TENANT_ID");
@@ -178,7 +178,7 @@ public class DataloaderInput implements Serializable {
 			}
 		}
 
-		requestsLogFilePath = properties.getProperty("REQUESTS_LOG_FILE_PATH");
+        requestsLogFilePath = properties.getProperty("REQUESTS_LOG_FILE");
 
 		String returnFB = properties.getProperty("RETURN_FULL_BODY");
 		if (checkNull(returnFB)) {

@@ -25,9 +25,9 @@ TENANT_ID=Id of the tenant|BdfZ3Fx9Hbn8Pcg
 THREAD_COUNT=Number of threads to run the dataload. Recommended value: 10|10
 
 #Tool Specific Properties
-JSON_FILE_PATH=Full path of the input JSON File|temp/usr/local/hco-json.txt
+JSON_FILE=Full path of the input JSON File|temp/usr/local/hco-json.txt
 JSON_FILE_TYPE=PIPE_ARRAY/ARRAY/OBJECT (PIPE_ARRAY-Current File format, ARRAY-Without pipe only JSON in array format,OBJECT-Without pipe only JSON in object format)|temp/usr/local/hco-output.txt
-FAILED_RECORD_FILE_PATH=Failed Records Output File Path|temp/usr/local/hco-failed.txt
+FAILED_RECORD_FILE=Failed Records Output File Path|temp/usr/local/hco-failed.txt
 RECORDS_PER_POST=Total Number of Records Per POST. Recommended value: 50|50
 DATALOAD_TYPE=Type of dataload. Possible Values: Entities/Relations|Entities/Relations/Interactions
 TIMEOUT_IN_MINUTES=Connection Timeout in minutes|5
@@ -43,7 +43,7 @@ EMAIL_IDS_TO_SEND_UPDATE=email ids seperated with comma for which updates will b
 SMTP_USERNAME=user name for the smpt server|
 SMTP_PASSWORD=password for the smpt server|
 MAIL_TRANSPORT_PROTOCOL=mail protocol|smpt
-REQUESTS_LOG_FILE_PATH=path to get complete logs|
+REQUESTS_LOG_FILE=path to get complete logs|
 RETURN_FULL_BODY=Return full body after posting the records instead of uris only which is default|TRUE/FALSE
 SKIP_PROCESS_TRACKER=Option to Skip the process tracker|TRUE/FALSE
 
