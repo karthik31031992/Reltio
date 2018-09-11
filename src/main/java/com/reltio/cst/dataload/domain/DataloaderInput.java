@@ -1,15 +1,10 @@
 package com.reltio.cst.dataload.domain;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static com.reltio.cst.dataload.DataloadConstants.*;
-import static com.reltio.cst.dataload.util.DataloadFunctions.*;
+import static com.reltio.cst.dataload.util.DataloadFunctions.checkNull;
 
 /***
  * This class file holds all the input data provided by the user to execute the
@@ -98,16 +93,16 @@ public class DataloaderInput implements Serializable {
 						.getProperty("THREAD_COUNT"));
 			}
 
-		fileName = properties.getProperty("JSON_FILE_PATH");
+        fileName = properties.getProperty("JSON_FILE");
 		jsonFileType = properties.getProperty("JSON_FILE_TYPE");
 		if (jsonFileType == null || jsonFileType.trim().isEmpty()) {
 			jsonFileType = JSON_FILE_TYPE_PIPE;
 		}
 
 		failedRecordsFileName = properties
-				.getProperty("FAILED_RECORD_FILE_PATH");
+                .getProperty("FAILED_RECORD_FILE");
 
-		serverHostName = properties.getProperty("DATALOAD_SERVER_HOST");
+		serverHostName = properties.getProperty("ENVIRONMENT_URL");
 		tenantId = properties.getProperty("TENANT_ID");
 		setDataloadType(properties.getProperty("DATALOAD_TYPE")); // Entities/Relations
 
@@ -183,7 +178,7 @@ public class DataloaderInput implements Serializable {
 			}
 		}
 
-		requestsLogFilePath = properties.getProperty("REQUESTS_LOG_FILE_PATH");
+        requestsLogFilePath = properties.getProperty("REQUESTS_LOG_FILE");
 
 		String returnFB = properties.getProperty("RETURN_FULL_BODY");
 		if (checkNull(returnFB)) {
