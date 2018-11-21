@@ -20,6 +20,8 @@ import com.reltio.file.ReltioFileReader;
 import com.reltio.file.ReltioFileWriter;
 import com.reltio.file.ReltioFlatFileReader;
 import com.reltio.file.ReltioFlatFileWriter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -34,12 +36,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static com.reltio.cst.dataload.DataloadConstants.*;
-import static com.reltio.cst.dataload.util.DataloadFunctions.*;
+import static com.reltio.cst.dataload.DataloadConstants.DEFAULT_ERROR_CODE;
+import static com.reltio.cst.dataload.DataloadConstants.GSON;
+import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_ARRAY;
+import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_PIPE;
+import static com.reltio.cst.dataload.DataloadConstants.MAX_FAILURE_COUNT;
+import static com.reltio.cst.dataload.util.DataloadFunctions.checkNull;
+import static com.reltio.cst.dataload.util.DataloadFunctions.printDataloadPerformance;
+import static com.reltio.cst.dataload.util.DataloadFunctions.sendHcps;
+import static com.reltio.cst.dataload.util.DataloadFunctions.waitForQueue;
+import static com.reltio.cst.dataload.util.DataloadFunctions.waitForTasksReady;
 
 public class LoadJsonToTenant {
 
     public static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+    private static final Logger logger = LogManager.getLogger(LoadJsonToTenant.class.getName());
 
     public static void main(String[] args) throws Exception {
 
@@ -56,8 +67,11 @@ public class LoadJsonToTenant {
                 properties.load(fileReader);
             }
         } catch (Exception e) {
-            System.out.println("Failed to Read the Properties File :: ");
-            e.printStackTrace();
+            logger.error("Failed to Read the Properties File :: ");
+            //System.out.println("Failed to Read the Properties File :: ");
+            //e.printStackTrace();
+            logger.debug(e);
+            logger.error(e.getMessage());
         }
 
         // Read Input data From the Properties File
@@ -82,10 +96,13 @@ public class LoadJsonToTenant {
                 || !checkNull(dataloaderInput.getFailedRecordsFileName())
                 || !checkNull(String.valueOf(dataloaderInput.getSendMailFileName()))
                 || !checkNull(String.valueOf(dataloaderInput.getSendMailFlag()))) {
-            System.out
-                    .println("One or more required Job configuration properties are missing... Please Verify and update the Job configuration file...");
-            System.out
-                    .println("Process Aborted due to insuficient input properties...");
+//            System.out
+//                    .println("One or more required Job configuration properties are missing... Please Verify and update the Job configuration file...");
+//            System.out
+//                    .println("Process Aborted due to insuficient input properties...");
+
+            logger.error("One or more required Job configuration properties are missing... Please Verify and update the Job configuration file...");
+            logger.error("Process Aborted due to insufficient input properties...");
             System.exit(-1);
         }
         final int MAX_QUEUE_SIZE_MULTIPLICATOR = 10;
@@ -98,9 +115,10 @@ public class LoadJsonToTenant {
                 "Interactions")
                 && !dataloaderInput.getDataloadType()
                 .equalsIgnoreCase("Groups")) {
-            System.out
-                    .println("Invalid DATALOAD_TYPE provided. It Should be (Entities/Relations/Interactions/Groups) .... ");
+//            System.out
+//                    .println("Invalid DATALOAD_TYPE provided. It Should be (Entities/Relations/Interactions/Groups) .... ");
 
+            logger.error("Invalid DATALOAD_TYPE provided. It Should be (Entities/Relations/Interactions/Groups)");
             System.exit(-1);
         }
 
@@ -159,14 +177,14 @@ public class LoadJsonToTenant {
                         dataloaderInput.getUsername(),
                         dataloaderInput.getPassword(), dataloaderInput.getAuthURL());
             } catch (APICallFailureException | GenericException e2) {
-                e2.printStackTrace();
-                System.out
-                        .println("Token Generation Process Failed. Please verify username/password and restart the process again...");
+                logger.debug(e2);
+                logger.error("Token Generation Process Failed. Please verify username/password and restart the process again...");
                 System.exit(-1);
             }
             tokenGeneratorService.startBackgroundTokenGenerator();
 
-            System.out.println("DataLoad started for Tenant :: " + apiUrl);
+            logger.info("DataLoad started for Tenant :: " + apiUrl);
+            //System.out.println("DataLoad started for Tenant :: " + apiUrl);
 
             final ReltioAPIService reltioAPIService = new SimpleReltioAPIServiceImpl(
                     tokenGeneratorService, dataloaderInput.getTimeoutInMinutes());
@@ -187,7 +205,7 @@ public class LoadJsonToTenant {
                     totalQueueWaitingTime += waitForQueue(apiUrl,
                             dataloaderInput.getQueueThreshold(), executorService, reltioAPIService, dataloaderInput.getTenantId());
                 } catch (GenericException | InterruptedException e2) {
-                    e2.printStackTrace();
+                    logger.debug(e2);
                     dataloaderInput.setLastUpdateTime(sdf.format(System
                             .currentTimeMillis()));
                     dataloaderInput.setStatus("Aborted");
@@ -196,9 +214,9 @@ public class LoadJsonToTenant {
                     try {
                         processTrackerService.sendProcessTrackerUpdate(true);
                     } catch (GenericException | ReltioAPICallFailureException e) {
-                        System.out
-                                .println("Aborting process to failuer on getting the Queue details.. Also recent update not sent to Process tracker....");
-                        e.printStackTrace();
+                        logger.error("Aborting process to failure on getting the Queue details.. Also recent update not sent to Process tracker....");
+                        logger.error(e.getMessage());
+                        logger.debug(e);
                     }
                     System.exit(-1);
                 }
@@ -226,7 +244,8 @@ public class LoadJsonToTenant {
                         try {
                             nextHcp = fileReader.readLine();
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            logger.error(e.getMessage());
+                            logger.debug(e);
                             nextHcp = fileReader.readLine();
                         }
                         if (nextHcp == null) {
@@ -376,14 +395,14 @@ public class LoadJsonToTenant {
                                     dataloaderInput.addSuccessCount(sucCount);
 
                                     if (failCcount > 0) {
-                                        System.out.println("Success entities="
+                                        logger.info("Success entities="
                                                 + sucCount
                                                 + "|Total Sent entities="
                                                 + currentCount
                                                 + "| Failed Entity Count="
                                                 + failCcount + "|" + "ERROR:"
                                                 + result);
-                                        System.out.println("Failure Count: "
+                                        logger.info("Failure Count: "
                                                 + failCcount
                                                 + "|"
                                                 + GSON.toJson(failedRecords));
@@ -401,14 +420,13 @@ public class LoadJsonToTenant {
                                                         .setStatus("Aborted");
                                                 processTrackerService
                                                         .sendProcessTrackerUpdate(true);
-                                                System.out
-                                                        .println("Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
+                                                logger.error("Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
                                                 System.exit(-1);
                                             }
                                         }
 
                                     } else {
-                                        System.out.println("Success entities="
+                                        logger.info("Success entities="
                                                 + sucCount
                                                 + "|Total Sent entities="
                                                 + currentCount);
@@ -479,15 +497,16 @@ public class LoadJsonToTenant {
                                                 processTrackerService
                                                         .sendProcessTrackerUpdate(true);
                                             } catch (GenericException e1) {
-                                                e1.printStackTrace();
+                                                logger.debug(e1);
+                                                logger.error(e1.getExceptionMessage());
                                             } catch (ReltioAPICallFailureException e1) {
-                                                e1.printStackTrace();
+                                                logger.debug(e1);
+                                                logger.error(e1.getErrorResponse());
                                             } catch (IOException e1) {
-                                                // TODO Auto-generated catch block
-                                                e1.printStackTrace();
+                                                logger.debug(e1);
+                                                logger.error(e1.getMessage());
                                             }
-                                            System.out
-                                                    .println("Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
+                                            logger.error("Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
                                             System.exit(-1);
                                         }
                                     }
@@ -497,7 +516,8 @@ public class LoadJsonToTenant {
                                                 .writeToFile(DataloadConstants.FAILURE_LOG_KEY
                                                         + stringToSend);
                                     } catch (IOException e1) {
-                                        e1.printStackTrace();
+                                        logger.error(e1.getMessage());
+                                        logger.debug(e);
                                     }
 
                                 } catch (ReltioAPICallFailureException e) {
@@ -547,15 +567,16 @@ public class LoadJsonToTenant {
                                                 processTrackerService
                                                         .sendProcessTrackerUpdate(true);
                                             } catch (GenericException e1) {
-                                                e1.printStackTrace();
+                                                logger.error(e1.getExceptionMessage());
+                                                logger.debug(e1);
                                             } catch (ReltioAPICallFailureException e1) {
-                                                e1.printStackTrace();
+                                                logger.error(e1.getErrorCode() + " " + e1.getErrorResponse());
+                                                logger.debug(e1);
                                             } catch (IOException e1) {
-                                                // TODO Auto-generated catch block
-                                                e1.printStackTrace();
+                                                logger.error(e1.getMessage());
+                                                logger.debug(e1);
                                             }
-                                            System.out
-                                                    .println("Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
+                                            logger.error("Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
                                             System.exit(-1);
                                         }
                                     }
@@ -565,12 +586,14 @@ public class LoadJsonToTenant {
                                                 .writeToFile(DataloadConstants.FAILURE_LOG_KEY
                                                         + stringToSend);
                                     } catch (IOException e1) {
-                                        e1.printStackTrace();
+                                        logger.debug(e1);
+                                        logger.error(e1.getMessage());
                                     }
 
                                 } catch (IOException e) {
 
-                                    e.printStackTrace();
+                                    logger.debug(e);
+                                    logger.error(e.getMessage());
                                 }
                                 requestExecutionTime = System.currentTimeMillis()
                                         - startTime; // one
@@ -634,8 +657,7 @@ public class LoadJsonToTenant {
             dataloaderInput.setProgramEndTime(sdf.format(endTime));
             dataloaderInput.setLastUpdateTime(sdf.format(endTime));
             dataloaderInput.setTotalTimeTaken(finalTime);
-            System.out
-                    .println("All data send to API. Program will not wait for Queue to get Empty.");
+            logger.info("All data send to API. Program will not wait for Queue to get Empty.");
 
             // System.out.println("Queues are empty. Printing final results");
             printDataloadPerformance(dataloaderInput.getTotalRecordsCount(),
@@ -662,9 +684,9 @@ public class LoadJsonToTenant {
             try {
                 processTrackerService.sendProcessTrackerUpdate(true);
             } catch (GenericException | ReltioAPICallFailureException e) {
-                e.printStackTrace();
-                System.out
-                        .println("Dataload process completed.... But final update of process tracket not sent to tenant...");
+                logger.debug(e);
+                logger.error(e.getMessage());
+                logger.error("Dataload process completed.... But final update of process tracket not sent to tenant...");
             }
         } finally {
             SimpleRestAPIServiceImpl.shutdownRequestsLogger();

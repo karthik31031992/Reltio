@@ -10,6 +10,8 @@ import com.reltio.cst.exception.handler.GenericException;
 import com.reltio.cst.exception.handler.ReltioAPICallFailureException;
 import com.reltio.cst.service.ReltioAPIService;
 import com.reltio.file.ReltioFileWriter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,13 +21,18 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
+
 public class DataloadFunctions {
+
+    private static final Logger logger = LogManager.getLogger(DataloadFunctions.class.getName());
+    private static final Logger logPerformance = LogManager.getLogger("performance-log");
     private static Gson gson = new Gson();
 
     public static void invalidJSonError(String json,
                                         DataloaderInput dataloaderInput, ReltioFileWriter reltioFileWriter)
             throws IOException {
-        System.out.println(json);
+        logger.debug(json);
+        logger.error("Invalid JSON..");
         reltioFileWriter.writeToFile(json);
         List<ReltioDataloadErrors> dataloadErrors = dataloaderInput
                 .getDataloadErrorsMap()
@@ -181,27 +188,39 @@ public class DataloadFunctions {
     public static void printDataloadPerformance(long totalTasksExecuted,
                                                 long totalTasksExecutionTime, long totalQueueWaitTime,
                                                 long programStartTime, long numberOfThreads) {
-        System.out
-                .println("[Performance]: ============= Current performance status ("
-                        + new Date().toString() + ") =============");
+        logger.info("[Performance]: ============= Current performance status ("
+                + new Date().toString() + ") =============");
         long finalTime = System.currentTimeMillis() - programStartTime;
-        System.out.println("[Performance]:  Total processing time : "
+        logger.info("[Performance]:  Total processing time : "
                 + finalTime);
-        System.out.println("[Performance]:  Total queue waiting time : "
+        logger.info("[Performance]:  Total queue waiting time : "
                 + totalQueueWaitTime);
-        System.out.println("[Performance]:  Entities sent: "
+        logger.info("[Performance]:  Entities sent: "
                 + totalTasksExecuted);
-        System.out
-                .println("[Performance]:  Total OPS (Entities sent / Time spent from program start): "
-                        + (totalTasksExecuted / (finalTime / 1000f)));
-        System.out
-                .println("[Performance]:  Total OPS without waiting for queue (Entities sent / (Time spent from program start - Time spent in waiting for API queue)): "
-                        + (totalTasksExecuted / ((finalTime - totalQueueWaitTime) / 1000f)));
-        System.out
-                .println("[Performance]:  API Server data load requests OPS (Entities sent / (Sum of time spend by API requests / Threads count)): "
-                        + (totalTasksExecuted / ((totalTasksExecutionTime / numberOfThreads) / 1000f)));
-        System.out
-                .println("[Performance]: ===============================================================================================================");
+        logger.info("[Performance]:  Total OPS (Entities sent / Time spent from program start): "
+                + (totalTasksExecuted / (finalTime / 1000f)));
+        logger.info("[Performance]:  Total OPS without waiting for queue (Entities sent / (Time spent from program start - Time spent in waiting for API queue)): "
+                + (totalTasksExecuted / ((finalTime - totalQueueWaitTime) / 1000f)));
+        logger.info("[Performance]:  API Server data load requests OPS (Entities sent / (Sum of time spend by API requests / Threads count)): "
+                + (totalTasksExecuted / ((totalTasksExecutionTime / numberOfThreads) / 1000f)));
+        logger.info("[Performance]: ===============================================================================================================");
+
+        //log performance only in separate logs
+        logPerformance.info("[Performance]: ============= Current performance status ("
+                + new Date().toString() + ") =============");
+        logPerformance.info("[Performance]:  Total processing time : "
+                + finalTime);
+        logPerformance.info("[Performance]:  Total queue waiting time : "
+                + totalQueueWaitTime);
+        logPerformance.info("[Performance]:  Entities sent: "
+                + totalTasksExecuted);
+        logPerformance.info("[Performance]:  Total OPS (Entities sent / Time spent from program start): "
+                + (totalTasksExecuted / (finalTime / 1000f)));
+        logPerformance.info("[Performance]:  Total OPS without waiting for queue (Entities sent / (Time spent from program start - Time spent in waiting for API queue)): "
+                + (totalTasksExecuted / ((finalTime - totalQueueWaitTime) / 1000f)));
+        logPerformance.info("[Performance]:  API Server data load requests OPS (Entities sent / (Sum of time spend by API requests / Threads count)): "
+                + (totalTasksExecuted / ((totalTasksExecutionTime / numberOfThreads) / 1000f)));
+        logPerformance.info("[Performance]: ===============================================================================================================");
     }
 
     /**
@@ -228,7 +247,8 @@ public class DataloadFunctions {
                         totalResult += future.get();
                         futures.remove(future);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.error(e.getMessage());
+                        logger.debug(e);
                     }
                 }
             }
@@ -261,16 +281,17 @@ public class DataloadFunctions {
             StatusResponse queueStatus = null;
             try {
                 queueStatus = getQueuesSize(srcUrl, reltioAPIService, tenantId);
-                ;
+
             } catch (Exception e) {
-                System.out.println("Error getting queues size");
-                e.printStackTrace();
+                logger.error("Error getting queues size");
+                logger.error(e.getMessage());
+                logger.debug(e);
             }
             if (queueStatus == null || queueStatus.getEventsQueueSize() == null
                     || queueStatus.getMatchingQueueSize() == null) {
                 throw new GenericException("Can't get queue sizes");
             }
-            System.out.println("[Queues]: Main events queue size = "
+            logger.info("[Queues]: Main events queue size = "
                     + queueStatus.getEventsQueueSize() + ", Matching queue size = "
                     + queueStatus.getMatchingQueueSize());
 
@@ -282,8 +303,7 @@ public class DataloadFunctions {
             // for longer time....
             for (int k = 0; k < 10; k++) {
                 if (startWaitTime < 0) {
-                    System.out
-                            .println("[Queues]: Executor is empty, data load program start just waiting for queue...");
+                    logger.info("[Queues]: Executor is empty, data load program start just waiting for queue...");
                     startWaitTime = threadPoolExecutor.getActiveCount() > 0 ? -1
                             : System.currentTimeMillis();
                 }
