@@ -28,8 +28,6 @@ public final class DataloadConstants {
 
     public static final Integer RECORDS_PER_POST = 30;
     public static final Integer THREAD_COUNT = 5;
-    public static final Integer MAX_OBJECTS_TO_UPDATE = 5; //changes
-
 
     public static final String MAIL_TRANSPORT_PROTOCOL = "mail.transport.protocol";
     public static final String MAIL_SMTP_HOST = "email-smtp.us-east-1.amazonaws.com";
