@@ -1,10 +1,25 @@
 package com.reltio.cst.dataload.domain;
 
-import java.io.Serializable;
-import java.util.*;
-
-import static com.reltio.cst.dataload.DataloadConstants.*;
+import static com.reltio.cst.dataload.DataloadConstants.DEFAULT_TIMEOUT_IN_MINUTES;
+import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_PIPE;
+import static com.reltio.cst.dataload.DataloadConstants.MAX_QUEUE_SIZE;
+import static com.reltio.cst.dataload.DataloadConstants.RECORDS_PER_POST;
+import static com.reltio.cst.dataload.DataloadConstants.THREAD_COUNT;
 import static com.reltio.cst.dataload.util.DataloadFunctions.checkNull;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.reltio.cst.dataload.impl.LoadJsonToTenant;
+import com.reltio.cst.util.Util;
 
 /***
  * This class file holds all the input data provided by the user to execute the
@@ -16,6 +31,7 @@ public class DataloaderInput implements Serializable {
      *
      */
 	private static final long serialVersionUID = 5831979169383717032L;
+    private static final Logger logger = LogManager.getLogger(LoadJsonToTenant.class.getName());
 
 	private String fileName;
 	private String serverHostName;
@@ -34,6 +50,7 @@ public class DataloaderInput implements Serializable {
 	private String failedRecordsFileName;
 	private String jsonFileType; // PIPE_ARRAY,ARRAY,OBJECT
 	private List<String> emailsToSendUpdate = null;
+	private boolean isMaxObjectsUpdatePresent;
 	private Integer maxObjectsToUpdate;
 	//private Boolean maxObjectsToUpdateDefault = false;
 
@@ -71,6 +88,10 @@ public class DataloaderInput implements Serializable {
 	private String requestsLogFilePath = null;
 	private Boolean returnFullBody = false;
 
+	
+	private List<String> requiredProps = Arrays.asList(new String[] {"FAILED_RECORD_FILE","RECORDS_PER_POST","ENVIRONMENT_URL","TENANT_ID","DATALOAD_TYPE","TYPE_OF_DATA","USERNAME","PASSWORD","AUTH_URL","JSON_FILE"});
+
+	
 	/**
 	 * This constructor reads the data from properties file and stores in the
 	 * variable
@@ -78,7 +99,15 @@ public class DataloaderInput implements Serializable {
 	 * @param properties
 	 */
 	public DataloaderInput(Properties properties) {
-
+		List<String> missingProps =  Util.listMissingProperties(properties, requiredProps);
+		
+		if(missingProps != null && missingProps.size() > 0) {
+	        logger.error("Process Aborted due to insufficient input properties... Below are the list of missing properties");
+	        logger.error(missingProps);
+	        
+	        System.exit(-1);
+		}
+		
 		if (!checkNull(properties.getProperty("RECORDS_PER_POST"))) {
 			groupsCount = RECORDS_PER_POST;
 		} else {
@@ -187,10 +216,8 @@ public class DataloaderInput implements Serializable {
 			}
 		}
 
-        if (!checkNull(properties.getProperty("MAX_OBJECTS_TO_UPDATE"))) {
-            maxObjectsToUpdate = MAX_OBJECTS_TO_UPDATE;
-            //maxObjectsToUpdateDefault = true;
-        } else {
+        if (checkNull(properties.getProperty("MAX_OBJECTS_TO_UPDATE"))) {
+        	isMaxObjectsUpdatePresent = true;
             maxObjectsToUpdate = Integer.parseInt(properties
                     .getProperty("MAX_OBJECTS_TO_UPDATE"));
         }
@@ -640,5 +667,19 @@ public class DataloaderInput implements Serializable {
 
 	public void setTimeoutInMinutes(Integer timeoutInMinutes) {
 		this.timeoutInMinutes = timeoutInMinutes;
+	}
+
+	/**
+	 * @return the isMaxObjectsUpdatePresent
+	 */
+	public boolean isMaxObjectsUpdatePresent() {
+		return isMaxObjectsUpdatePresent;
+	}
+
+	/**
+	 * @param isMaxObjectsUpdatePresent the isMaxObjectsUpdatePresent to set
+	 */
+	public void setMaxObjectsUpdatePresent(boolean isMaxObjectsUpdatePresent) {
+		this.isMaxObjectsUpdatePresent = isMaxObjectsUpdatePresent;
 	}
 }
