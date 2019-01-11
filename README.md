@@ -9,6 +9,11 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 ```
 
+v2.5.6
+Last Updated Date  : 11th Jan 2019
+LUB                : Vignesh Chandran
+Version            : 2.5.6
+Description        : Update reltio-core-cst to latest version 1.4.4 with the bug fix for CUST-3049
 v2.5.5
 Last Updated Date  : 21st Nov 2018
 LUB                : Vignesh Chandran, Sanjay
