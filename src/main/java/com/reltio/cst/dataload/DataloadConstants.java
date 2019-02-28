@@ -19,7 +19,6 @@ public final class DataloadConstants {
     public static final Integer INVALID_JSON_FILE = 001;
     public static final String INVALID_JSON_FILE_MESSAGE = "Invalid JSON in the input File";
     public static final Integer MAX_FAILURE_PER_ERROR_CODE = 10;
-    public static final Integer MAX_QUEUE_SIZE = 500000;
     public static final String JSON_FILE_TYPE_PIPE = "PIPE_ARRAY";
     public static final String JSON_FILE_TYPE_ARRAY = "ARRAY";
     public static final String JSON_FILE_TYPE_OBJECT = "OBJECT";
@@ -46,6 +45,8 @@ public final class DataloadConstants {
     public static final String TIME_TO_EXPIRE = "timeToExpire";
 
     public static final String DEFAULT_BCC_EMAIL = "";
+    public static final String GREEN_STATUS = "Green";
+    public static final String YELLOW_STATUS = "Yellow";
 
     public static final String SMTP_USERNAME = ""; // Replace with your SMTP username.
     public static final String SMTP_PASSWORD = ""; // Replace with your SMTP password.
