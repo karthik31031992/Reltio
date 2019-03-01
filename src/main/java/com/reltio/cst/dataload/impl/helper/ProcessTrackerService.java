@@ -103,9 +103,6 @@ public class ProcessTrackerService {
             metricsAttributes.RecordsPerPost = getAttribute(
                     metricsAttributes.RecordsPerPost,
                     dataloaderInput.getGroupsCount());
-            metricsAttributes.QueueSize = getAttribute(
-                    metricsAttributes.QueueSize,
-                    dataloaderInput.getQueueThreshold());
 
             metrics.value = metricsAttributes;
             processTrackerObject.attributes.Metrics.add(metrics);

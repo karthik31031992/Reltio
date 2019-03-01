@@ -189,8 +189,7 @@ public class LoadJsonToTenant {
             while (!eof) {
 
                 try {
-                    totalQueueWaitingTime += waitForQueue(apiUrl,
-                            dataloaderInput.getQueueThreshold(), executorService, reltioAPIService, dataloaderInput.getTenantId());
+                    totalQueueWaitingTime += waitForQueue(apiUrl, executorService, reltioAPIService, dataloaderInput.getTenantId());
                 } catch (GenericException | InterruptedException e2) {
                     logger.debug(e2);
                     dataloaderInput.setLastUpdateTime(sdf.format(System
