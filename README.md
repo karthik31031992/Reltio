@@ -9,11 +9,19 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 ```
 
+v2.5.7
+Last Updated Date  : 28th Feb 2019
+LUB                : Vignesh Chandran
+Version            : 2.5.7
+Description        : Fix as per CUST-3065, Change in behaviour of checking the status instead of queue size it would be status.
+
 v2.5.6
 Last Updated Date  : 11th Jan 2019
 LUB                : Vignesh Chandran
 Version            : 2.5.6
 Description        : Update reltio-core-cst to latest version 1.4.4 with the bug fix for CUST-3049
+
+
 v2.5.5
 Last Updated Date  : 21st Nov 2018
 LUB                : Vignesh Chandran, Sanjay
@@ -67,5 +75,5 @@ See the License for the specific language governing permissions and limitations 
 ```
 
 ## Quick Start 
-To learn about dependencies, building and executing the tool view our [quick start](https://bitbucket.org/reltio-ondemand/util-dataload/src/c431f56bce00446e438dce448adf9011b56504c1/QuickStart.md?at=master&fileviewer=file-view-default).
+To learn about dependencies, building and executing the tool view our [quick start](https://bitbucket.org/reltio-ondemand/util-dataload-processor/src/master/QuickStart.md).
 

@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.reltio.cst.dataload.DataloadConstants.GREEN_STATUS;
+import static com.reltio.cst.dataload.DataloadConstants.YELLOW_STATUS;
+
 
 public class DataloadFunctions {
 
@@ -269,7 +272,7 @@ public class DataloadFunctions {
      * @throws InterruptedException
      * @throws Exception
      */
-    public static long waitForQueue(String srcUrl, int numberOfEvents,
+    public static long waitForQueue(String srcUrl,
                                     ThreadPoolExecutor threadPoolExecutor, ReltioAPIService reltioAPIService, String tenantId) throws GenericException,
             InterruptedException {
 
@@ -293,13 +296,13 @@ public class DataloadFunctions {
             }
             logger.info("[Queues]: Main events queue size = "
                     + queueStatus.getEventsQueueSize() + ", Matching queue size = "
-                    + queueStatus.getMatchingQueueSize());
+                    + queueStatus.getMatchingQueueSize() + ", Status ="
+                    + queueStatus.getStatus());
 
-            if (queueStatus.getEventsQueueSize() <= numberOfEvents
-                    && queueStatus.getMatchingQueueSize() <= numberOfEvents) {
+            if (queueStatus.getStatus().equals(GREEN_STATUS)
+                    || queueStatus.getStatus().equals(YELLOW_STATUS)) {
                 break;
             }
-            numberOfEvents *= 0.6; // If we reach limit, let's wait for queues
             // for longer time....
             for (int k = 0; k < 10; k++) {
                 if (startWaitTime < 0) {
