@@ -75,5 +75,5 @@ See the License for the specific language governing permissions and limitations 
 ```
 
 ## Quick Start 
-To learn about dependencies, building and executing the tool view our [quick start](https://bitbucket.org/reltio-ondemand/util-dataload/src/c431f56bce00446e438dce448adf9011b56504c1/QuickStart.md?at=master&fileviewer=file-view-default).
+To learn about dependencies, building and executing the tool view our [quick start](https://bitbucket.org/reltio-ondemand/util-dataload-processor/src/master/QuickStart.md).
 
