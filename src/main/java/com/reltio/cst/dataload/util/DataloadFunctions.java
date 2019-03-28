@@ -260,11 +260,10 @@ public class DataloadFunctions {
     }
 
     /**
-     * Waits for Reltio queues having not more than <code>numberOfEvents</code>
+     * Waits for Reltio queues having not color other that <code>Yellow or Green</code>
      * messages
      *
      * @param srcUrl             - API url
-     * @param numberOfEvents     - number of events could be left in queue
      * @param threadPoolExecutor - executor service that processed uploading
      * @return total waiting for queue time. Waiting for queue is period when
      * executor executed all jobs and API just working on queue
