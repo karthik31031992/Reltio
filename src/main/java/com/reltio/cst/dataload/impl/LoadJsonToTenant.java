@@ -16,6 +16,7 @@ import com.reltio.cst.service.TokenGeneratorService;
 import com.reltio.cst.service.impl.SimpleReltioAPIServiceImpl;
 import com.reltio.cst.service.impl.SimpleRestAPIServiceImpl;
 import com.reltio.cst.service.impl.TokenGeneratorServiceImpl;
+import com.reltio.cst.util.Util;
 import com.reltio.file.ReltioFileReader;
 import com.reltio.file.ReltioFileWriter;
 import com.reltio.file.ReltioFlatFileReader;
@@ -23,7 +24,6 @@ import com.reltio.file.ReltioFlatFileWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -64,9 +64,7 @@ public class LoadJsonToTenant {
 
         try {
             String propertyFilePath = args[0];
-            try (FileReader fileReader = new FileReader(propertyFilePath)) {
-                properties.load(fileReader);
-            }
+            properties = Util.getProperties(propertyFilePath, "PASSWORD");
         } catch (Exception e) {
             logger.error("Failed to Read the Properties File :: ");
             //System.out.println("Failed to Read the Properties File :: ");
