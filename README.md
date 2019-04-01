@@ -9,6 +9,13 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 ```
 
+
+v2.5.8
+Last Updated Date  : 29th Mar 2019
+LUB                : Vignesh Chandran
+Version            : 2.5.8
+Description        : ROCS-3 now the password gets encrypted after the inital run.
+
 v2.5.7
 Last Updated Date  : 28th Feb 2019
 LUB                : Vignesh Chandran

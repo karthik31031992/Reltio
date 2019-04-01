@@ -79,7 +79,17 @@ public class DataloaderInput implements Serializable {
     private Boolean returnFullBody = false;
 
 
-    private List<String> requiredProps = Arrays.asList("FAILED_RECORD_FILE", "RECORDS_PER_POST", "ENVIRONMENT_URL", "TENANT_ID", "DATALOAD_TYPE", "TYPE_OF_DATA", "USERNAME", "PASSWORD", "AUTH_URL", "JSON_FILE");
+    private List<String> requiredProps = Arrays.asList(
+            "FAILED_RECORD_FILE",
+            "RECORDS_PER_POST",
+            "ENVIRONMENT_URL",
+            "TENANT_ID",
+            "DATALOAD_TYPE",
+            "TYPE_OF_DATA",
+            "USERNAME",
+            "PASSWORD",
+            "AUTH_URL",
+            "JSON_FILE");
 
 
     /**
@@ -105,6 +115,8 @@ public class DataloaderInput implements Serializable {
                     .getProperty("RECORDS_PER_POST"));
         }
         if (!checkNull(properties.getProperty("MAIL_TRANSPORT_PROTOCOL")))
+
+
             if (!checkNull(properties.getProperty("THREAD_COUNT"))) {
                 threadCount = THREAD_COUNT;
             } else {

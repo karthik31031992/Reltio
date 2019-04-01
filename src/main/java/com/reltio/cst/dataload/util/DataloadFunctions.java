@@ -325,7 +325,7 @@ public class DataloadFunctions {
         response = reltioAPIService.post(srcUrl, stringToSend);
 
         if (response == null) {
-            throw new GenericException("Empty Response Recieved...");
+            throw new GenericException("Empty Response Received...");
         }
         return response;
 
@@ -337,9 +337,7 @@ public class DataloadFunctions {
         String url = srcUrl.substring(0, srcUrl.indexOf("/api/")) + "/status/tenant/" + tenantID;
 
         String responseStr = reltioAPIService.get(url);
-        StatusResponse statusResponse = gson.fromJson(responseStr, StatusResponse.class);
-
-        return statusResponse;
+        return gson.fromJson(responseStr, StatusResponse.class);
 
     }
 
