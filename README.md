@@ -9,6 +9,11 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 ```
 
+v2.5.9
+Last Updated Date  : 2nd Apr 2019
+LUB                : Vignesh Chandran
+Version            : 2.5.9
+Description        : https://reltio.jira.com/browse/ROCS-27 MAIL_SMTP_HOST is now made as a property instead of hard-coding and removed MAIL_TRANSPORT_PROTOCOL removed from property file.
 
 v2.5.8
 Last Updated Date  : 29th Mar 2019
