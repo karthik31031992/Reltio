@@ -5,7 +5,7 @@
     <groupId>com.reltio.cst</groupId>
     <artifactId>dataload-processor</artifactId>
     <name>dataload-processor</name>
-    <version>2.5.8</version>
+    <version>2.5.9</version>
 
     <description>This project handles the loading data from JSON file to Reltio tenant</description>
 
@@ -48,6 +48,18 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.11.1</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -90,7 +90,10 @@ public class SendMail {
                 // Send the message.
 
                 // Connect to Amazon SES using the SMTP username and password.
-                transport.connect(DataloadConstants.MAIL_SMTP_HOST, dataloaderInput.getSmtp_username(), dataloaderInput.getSmtp_password());
+                transport.connect(
+                        dataloaderInput.getSmpt_host(),
+                        dataloaderInput.getSmtp_username(),
+                        dataloaderInput.getSmtp_password());
 //				transport.connect(DataloadConstants.MAIL_SMTP_HOST,DataloaderInput.SMTP_USERNAME,DataloadConstants.SMTP_PASSWORD);
                 // Send the email.
                 transport.sendMessage(msg, msg.getAllRecipients());
@@ -178,15 +181,5 @@ public class SendMail {
             reverse = reverse + original.charAt(i);
         return reverse;
     }
-
-    // public static void main(String[] args) throws Exception {
-    // String content = new Scanner(new
-    // File("C:\\workspace\\Intellij\\Activity\\output\\ActiveUsers_fcHqQicFveQzMbc.json")).useDelimiter("\\Z").next();
-    // Properties properties = new Properties();
-    // String propertiesFileName = args[0];
-    // properties.load(new FileInputStream(propertiesFileName));
-    // SendEmail email = new SendEmail(properties,content);
-    // email.send();
-    // }
 
 }

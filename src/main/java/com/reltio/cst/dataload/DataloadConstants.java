@@ -29,7 +29,7 @@ public final class DataloadConstants {
     public static final Integer THREAD_COUNT = 5;
 
     public static final String MAIL_TRANSPORT_PROTOCOL = "mail.transport.protocol";
-    public static final String MAIL_SMTP_HOST = "email-smtp.us-east-1.amazonaws.com";
+    //public static final String MAIL_SMTP_HOST = "email-smtp.us-east-1.amazonaws.com";
     public static final String MAIL_SMTP_STARTTLS_ENABLE = "mail.smtp.starttls.enable";
     public static final String MAIL_SMTP_STARTTLS_REQUIRED = "mail.smtp.starttls.required";
     public static final String MAIL_SMTP_AUTH = "mail.smtp.auth";
@@ -48,8 +48,8 @@ public final class DataloadConstants {
     public static final String GREEN_STATUS = "Green";
     public static final String YELLOW_STATUS = "Yellow";
 
-    public static final String SMTP_USERNAME = ""; // Replace with your SMTP username.
-    public static final String SMTP_PASSWORD = ""; // Replace with your SMTP password.
+//    public static final String SMTP_USERNAME = ""; // Replace with your SMTP username.
+//    public static final String SMTP_PASSWORD = ""; // Replace with your SMTP password.
 
 
     public static final String[] FAILED_LOG_FILE_HEADER = {"Crosswalk Type",

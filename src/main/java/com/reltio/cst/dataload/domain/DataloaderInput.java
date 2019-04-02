@@ -38,6 +38,7 @@ public class DataloaderInput implements Serializable {
     private String dataType;
     private String username;
     private String password;
+    private String smpt_host;
     private String smtp_username;
     private String smtp_password;
     private String authURL;
@@ -114,9 +115,6 @@ public class DataloaderInput implements Serializable {
             groupsCount = Integer.parseInt(properties
                     .getProperty("RECORDS_PER_POST"));
         }
-        if (!checkNull(properties.getProperty("MAIL_TRANSPORT_PROTOCOL")))
-
-
             if (!checkNull(properties.getProperty("THREAD_COUNT"))) {
                 threadCount = THREAD_COUNT;
             } else {
@@ -142,6 +140,7 @@ public class DataloaderInput implements Serializable {
         password = properties.getProperty("PASSWORD");
         smtp_username = properties.getProperty("SMTP_USERNAME");
         smtp_password = properties.getProperty("SMTP_PASSWORD");
+        smpt_host = properties.getProperty("MAIL_SMTP_HOST", "email-smtp.us-east-1.amazonaws.com");
 
 
         if (!checkNull(properties.getProperty("TIMEOUT_IN_MINUTES"))) {
@@ -282,6 +281,14 @@ public class DataloaderInput implements Serializable {
 
     public void setSmtp_username(String smtp_username) {
         this.smtp_username = smtp_username;
+    }
+
+    public String getSmpt_host() {
+        return smpt_host;
+    }
+
+    public void setSmpt_host(String smpt_host) {
+        this.smpt_host = smpt_host;
     }
 
     public String getSmtp_password() {
