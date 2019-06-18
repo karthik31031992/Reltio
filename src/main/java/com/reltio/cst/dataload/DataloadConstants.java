@@ -4,6 +4,7 @@
 package com.reltio.cst.dataload;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  *
@@ -11,8 +12,15 @@ import com.google.gson.Gson;
  */
 public final class DataloadConstants {
 
+    public static Gson GSON;
+
+    {
+        GsonBuilder builder = new GsonBuilder(); 
+        builder.serializeNulls(); 
+        GSON = builder.create(); 
+
+	}
     public static final String PC_SOURCE_SYSTEM = "configuration/sources/Reltio";
-    public static final Gson GSON = new Gson();
     public static final Integer MAX_FAILURE_COUNT = 1000000;
     public static final String FAILURE_LOG_KEY = "FailedToResentJson|";
     public static final Integer DEFAULT_ERROR_CODE = 000;

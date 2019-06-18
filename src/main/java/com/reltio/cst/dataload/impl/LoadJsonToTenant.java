@@ -1,5 +1,32 @@
 package com.reltio.cst.dataload.impl;
 
+import static com.reltio.cst.dataload.DataloadConstants.DEFAULT_ERROR_CODE;
+import static com.reltio.cst.dataload.DataloadConstants.GSON;
+import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_ARRAY;
+import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_PIPE;
+import static com.reltio.cst.dataload.DataloadConstants.MAX_FAILURE_COUNT;
+import static com.reltio.cst.dataload.util.DataloadFunctions.printDataloadPerformance;
+import static com.reltio.cst.dataload.util.DataloadFunctions.sendHcps;
+import static com.reltio.cst.dataload.util.DataloadFunctions.waitForQueue;
+import static com.reltio.cst.dataload.util.DataloadFunctions.waitForTasksReady;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.gson.reflect.TypeToken;
 import com.reltio.cst.dataload.DataloadConstants;
 import com.reltio.cst.dataload.domain.DataloaderInput;
@@ -21,33 +48,7 @@ import com.reltio.file.ReltioFileReader;
 import com.reltio.file.ReltioFileWriter;
 import com.reltio.file.ReltioFlatFileReader;
 import com.reltio.file.ReltioFlatFileWriter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import static com.reltio.cst.dataload.DataloadConstants.DEFAULT_ERROR_CODE;
-import static com.reltio.cst.dataload.DataloadConstants.GSON;
-import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_ARRAY;
-import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_PIPE;
-import static com.reltio.cst.dataload.DataloadConstants.MAX_FAILURE_COUNT;
-import static com.reltio.cst.dataload.util.DataloadFunctions.printDataloadPerformance;
-import static com.reltio.cst.dataload.util.DataloadFunctions.sendHcps;
-import static com.reltio.cst.dataload.util.DataloadFunctions.waitForQueue;
-import static com.reltio.cst.dataload.util.DataloadFunctions.waitForTasksReady;
-
+	
 public class LoadJsonToTenant {
 
     public static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
