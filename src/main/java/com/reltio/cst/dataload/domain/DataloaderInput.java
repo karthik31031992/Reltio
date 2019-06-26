@@ -77,7 +77,12 @@ public class DataloaderInput implements Serializable {
     private Boolean isAlwaysCreateDCR = false;
 
     private String requestsLogFilePath = null;
+
     private Boolean returnFullBody = false;
+
+    private Boolean isURIrequired = false;
+
+    private String uriFilePath;
 
 
     private List<String> requiredProps = Arrays.asList(
@@ -216,6 +221,10 @@ public class DataloaderInput implements Serializable {
             maxObjectsToUpdate = Integer.parseInt(properties
                     .getProperty("MAX_OBJECTS_TO_UPDATE"));
         }
+
+        isURIrequired = Boolean.valueOf(properties.getProperty("IS_CREATED_REQUIRED","false"));
+        uriFilePath = (properties.getProperty("URI_FILE","uris.csv"));
+
     }
 
     public String getFileName() {
@@ -660,4 +669,18 @@ public class DataloaderInput implements Serializable {
     public void setMaxObjectsUpdatePresent(boolean isMaxObjectsUpdatePresent) {
         this.isMaxObjectsUpdatePresent = isMaxObjectsUpdatePresent;
     }
+
+    public Boolean getURIrequired() {
+        return isURIrequired;
+    }
+
+    public String getUriFilePath() {
+        return uriFilePath;
+    }
+
+    public void setUriFilePath(String uriFilePath) {
+        this.uriFilePath = uriFilePath;
+    }
+
+
 }

@@ -8,6 +8,13 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 
 ```
+v2.6
+Last Updated Date  : 26nd June 2019
+LUB                : Shivaputrappa Patil
+Version            : 2.6
+Description        :  https://reltio.jira.com/browse/ROCS-31
+					  https://reltio.jira.com/browse/ROCS-18
+                      https://reltio.jira.com/browse/ROCS-56
 
 v2.5.9
 Last Updated Date  : 2nd Apr 2019

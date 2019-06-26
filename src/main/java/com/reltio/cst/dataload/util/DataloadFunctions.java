@@ -271,7 +271,7 @@ public class DataloadFunctions {
      * @throws InterruptedException
      * @throws Exception
      */
-    public static long waitForQueue(String srcUrl,
+    public static long waitForTenantStatus(String srcUrl,
                                     ThreadPoolExecutor threadPoolExecutor, ReltioAPIService reltioAPIService, String tenantId) throws GenericException,
             InterruptedException {
 
@@ -318,8 +318,8 @@ public class DataloadFunctions {
         return 0l;
     }
 
-    public static String sendHcps(String srcUrl, String stringToSend,
-                                  ReltioAPIService reltioAPIService) throws GenericException,
+    public static String sendEntities(String srcUrl, String stringToSend,
+                                      ReltioAPIService reltioAPIService) throws GenericException,
             ReltioAPICallFailureException {
         String response = null;
         response = reltioAPIService.post(srcUrl, stringToSend);
