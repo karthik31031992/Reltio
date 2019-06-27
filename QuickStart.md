@@ -23,6 +23,11 @@ PASSWORD=Reltio Account password|password
 ENVIRONMENT_URL=Host name of the dataload server|dev-dataload.reltio.com,dev.reltio.com
 TENANT_ID=Id of the tenant|BdfZ3Fx9Hbn8Pcg
 THREAD_COUNT=Number of threads to run the dataload. Recommended value: 10|10
+#Host of the proxy
+HTTP_PROXY_HOST=
+#Port for the proxy
+HTTP_PROXY_PORT=
+
 
 #Flag whether to generate uri file 
 IS_CREATED_REQUIRED=TRUE

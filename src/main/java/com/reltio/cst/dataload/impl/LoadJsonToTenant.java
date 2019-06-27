@@ -81,6 +81,7 @@ public class LoadJsonToTenant {
 				return;
 			}
 			properties = Util.getProperties(propertyFilePath, "PASSWORD");
+			Util.setHttpProxy(properties);
 		} catch (Exception e) {
 			logger.error("Failed to Read the Properties File :: ", e.getMessage());
 			return;
