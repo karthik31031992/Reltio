@@ -71,6 +71,6 @@ SKIP_PROCESS_TRACKER=Option to Skip the process tracker|TRUE/FALSE
 Command to start the utility.
 ```
 
-java -jar util-dataload-processor-{$version}-jar-with-dependencies.jar propertiesFile.txt > $logfilepath$
+java -jar util-dataload-processor-${version}-jar-with-dependencies.jar propertiesFile.txt > $logfilepath$
          
 ```
