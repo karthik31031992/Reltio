@@ -204,6 +204,11 @@ public class DataloaderInput implements Serializable {
         if (checkNull(alwaysCreateDCR)) {
             if (alwaysCreateDCR.equalsIgnoreCase("TRUE")) {
                 isAlwaysCreateDCR = true;
+                
+                /*
+                 * Setting group count to 1 if isAlwaysCreateDCR=true . Since change request should be created per entity.
+                 */
+                groupsCount = 1;
             }
         }
 
