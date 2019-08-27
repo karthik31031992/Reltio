@@ -54,6 +54,7 @@ TYPE_OF_DATA=Entity/Relationship Type of the data.|HCO
 USER_COMMENTS=Details of the dataload. Can be used to help anyone to understand the purpose of the dataload|inital load
 ALWAYS_CREATE_DCR=If true, create a DCR without creating entities [alwaysCreateDCR:true in the API]|TRUE/FALSE
 #NOTE - 1) Using ALWAYS_CREATE_DCR=true, only creates changerequests. In order to create an DCR please trigger the API separately. 
+			Please refer https://docs.reltio.com/workflowapi/startprocessinstance.html for more details how to trigger an DCR.
 		2) Using ALWAYS_CREATE_DCR=true and IS_CREATED_REQUIRED=TRUE, tool will generate an output uri file with entity uris and changerequests uri. These uris can be used to create an DCR later.
 		3) Also ALWAYS_CREATE_DCR=false, and the user used for dataload has only READ/INITIATE_CHANGE_REQUEST permissions and dont have CREATE/UPDATE permissions,
 		Please make ALWAYS_CREATE_DCR=true, as the dataload process will create changerequests only. 

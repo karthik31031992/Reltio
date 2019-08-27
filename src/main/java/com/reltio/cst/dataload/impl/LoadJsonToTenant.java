@@ -314,78 +314,7 @@ public class LoadJsonToTenant {
 
 
 									processResponse(result, dataloaderInput, stringToSend, uriWriter, totalRecordsSent, currentCount, reltioFileWriter, processTrackerService);
-/*
-									List<ReltioDataloadResponse> dataloadResponses = GSON.fromJson(result,
-											new TypeToken<List<ReltioDataloadResponse>>() {
-									}.getType());
-									List<Object> failedRecords = new ArrayList<Object>();
 
-									int sucCount = 0;
-									int failCcount = 0;
-
-									if (dataloaderInput.getURIrequired()) {
-										writeUris(uriWriter, stringToSend, result);
-									}
-
-									for (ReltioDataloadResponse reltioDataloadResponse : dataloadResponses) {
-										if (reltioDataloadResponse.getSuccessful()) {
-
-											sucCount++;
-										} else {
-											failCcount++;
-
-											Object failedRec = totalRecordsSent.get(reltioDataloadResponse.getIndex());
-											failedRecords.add(failedRec);
-											ReltioDataloadErrors dataloadErrors = reltioDataloadResponse.getErrors();
-											ReltioCrosswalkObject crosswalkObject = GSON
-													.fromJson(GSON.toJson(failedRec), ReltioCrosswalkObject.class);
-
-											if (crosswalkObject != null && crosswalkObject.getCrosswalks() != null
-													&& !crosswalkObject.getCrosswalks().isEmpty()) {
-												dataloadErrors.setCrosswalkType(
-														crosswalkObject.getCrosswalks().get(0).getType());
-												dataloadErrors.setCrosswalkValue(
-														crosswalkObject.getCrosswalks().get(0).getValue() + "");
-											}
-											List<ReltioDataloadErrors> reltioDataloadErrors = dataloaderInput
-													.getDataloadErrorsMap().get(dataloadErrors.getErrorCode());
-											if (reltioDataloadErrors == null) {
-												reltioDataloadErrors = new ArrayList<>();
-											}
-											reltioDataloadErrors.add(dataloadErrors);
-											dataloaderInput.getDataloadErrorsMap().put(dataloadErrors.getErrorCode(),
-													reltioDataloadErrors);
-										}
-									}
-
-									dataloaderInput.addFailureCount(failCcount);
-									dataloaderInput.addSuccessCount(sucCount);
-
-									if (failCcount > 0) {
-										logger.info("Success entities=" + sucCount + "|Total Sent entities="
-												+ currentCount + "| Failed Entity Count=" + failCcount + "|" + "ERROR:"
-												+ result + "\nFailure Count: " + failCcount + "|"
-												+ GSON.toJson(failedRecords));
-										reltioFileWriter.writeToFile(
-												"Failure Count: " + failCcount + "|" + GSON.toJson(failedRecords));
-
-										for (Entry<Integer, List<ReltioDataloadErrors>> errorMap : dataloaderInput
-												.getDataloadErrorsMap().entrySet()) {
-											if (errorMap.getValue().size() > MAX_FAILURE_COUNT) {
-												dataloaderInput
-												.setLastUpdateTime(sdf.format(System.currentTimeMillis()));
-												dataloaderInput.setStatus("Aborted");
-												processTrackerService.sendProcessTrackerUpdate(true);
-												logger.error(
-														"Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
-												System.exit(-1);
-											}
-										}
-
-									} else {
-										logger.info("Success entities=" + sucCount + "|Total Sent entities="
-												+ currentCount);
-									}*/
 
 									long updateTime = System.currentTimeMillis() - pStartTime[0];
 									int minutes = (int) ((updateTime / (1000 * 60)) % 60);
@@ -565,6 +494,21 @@ public class LoadJsonToTenant {
 
 	}
 
+	/**
+	 * Process response based on api response
+	 * 
+	 * @param result
+	 * @param dataloaderInput
+	 * @param stringToSend
+	 * @param uriWriter
+	 * @param totalRecordsSent
+	 * @param currentCount
+	 * @param reltioFileWriter
+	 * @param processTrackerService
+	 * @throws GenericException
+	 * @throws ReltioAPICallFailureException
+	 * @throws IOException
+	 */
 	private static void processResponse(String result,DataloaderInput dataloaderInput, String stringToSend, ReltioCSVFileWriter uriWriter,
 			List<Object> totalRecordsSent, int currentCount, ReltioFileWriter reltioFileWriter, ProcessTrackerService processTrackerService) throws GenericException, ReltioAPICallFailureException, IOException {
 
@@ -597,9 +541,13 @@ public class LoadJsonToTenant {
 			}
 		}else {
 			if( result.contains("\"uri\":\"changeRequests")) {
+				
+				Util.close(uriWriter, reltioFileWriter);
+
 				/*
 				 * Throw Error because the user has INITIATE_CHANGE_REQUST permission only. So stopping process execution 
 				 */
+
 				logger.fatal("Error!!!  System is exiting.................");
 				logger.fatal("The user does not permission to create/update entities, but has permission to InitiateChangeRequests. ");
 				logger.fatal("Please give the user Create/Update permission or use ALWAYS_CREATE_DCR=true option to create changerequests only.");
