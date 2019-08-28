@@ -36,6 +36,7 @@ import com.reltio.cst.dataload.domain.DataloaderInput;
 import com.reltio.cst.dataload.domain.EntityRequest;
 import com.reltio.cst.dataload.domain.EntityResponse;
 import com.reltio.cst.dataload.domain.ReltioCrosswalkObject;
+import com.reltio.cst.dataload.domain.ReltioDataloadCRResponse;
 import com.reltio.cst.dataload.domain.ReltioDataloadErrors;
 import com.reltio.cst.dataload.domain.ReltioDataloadResponse;
 import com.reltio.cst.dataload.impl.helper.ProcessTrackerService;
@@ -63,7 +64,7 @@ public class LoadJsonToTenant {
 	public static void main(String[] args) throws Exception {
 
 		final long[] pStartTime = new long[1];
-		
+
 		final boolean[] flag = new boolean[1];
 		if (args.length == 0) {
 			logger.error("Validation failed as no argument passed");
@@ -137,6 +138,11 @@ public class LoadJsonToTenant {
 			// to stop LCA execution
 			if (!dataloaderInput.getIsExecuteLCA()) {
 				params.put("executeLCA", "false");
+			}
+
+			// To create change requests instead creating entity directly
+			if (dataloaderInput.getIsAlwaysCreateDCR()) {
+				params.put("alwaysCreateDCR", "true");
 			}
 
 			params.forEach((k, v) -> {
@@ -248,7 +254,7 @@ public class LoadJsonToTenant {
 								try {
 									List<Object> recordsInLine = GSON.fromJson(nextEntity[jsonIndex],
 											new TypeToken<List<Object>>() {
-											}.getType());
+									}.getType());
 									inputRecords.addAll(recordsInLine);
 									count = count + recordsInLine.size();
 								} catch (Exception e) {
@@ -306,77 +312,9 @@ public class LoadJsonToTenant {
 									String result = sendEntities(apiUrl, GSON.toJson(totalRecordsSent),
 											reltioAPIService);
 
-									List<ReltioDataloadResponse> dataloadResponses = GSON.fromJson(result,
-											new TypeToken<List<ReltioDataloadResponse>>() {
-											}.getType());
-									List<Object> failedRecords = new ArrayList<Object>();
 
-									int sucCount = 0;
-									int failCcount = 0;
+									processResponse(result, dataloaderInput, stringToSend, uriWriter, totalRecordsSent, currentCount, reltioFileWriter, processTrackerService);
 
-									if (dataloaderInput.getURIrequired()) {
-										writeUris(uriWriter, stringToSend, result);
-									}
-
-									for (ReltioDataloadResponse reltioDataloadResponse : dataloadResponses) {
-										if (reltioDataloadResponse.getSuccessful()) {
-
-											sucCount++;
-										} else {
-											failCcount++;
-
-											Object failedRec = totalRecordsSent.get(reltioDataloadResponse.getIndex());
-											failedRecords.add(failedRec);
-											ReltioDataloadErrors dataloadErrors = reltioDataloadResponse.getErrors();
-											ReltioCrosswalkObject crosswalkObject = GSON
-													.fromJson(GSON.toJson(failedRec), ReltioCrosswalkObject.class);
-
-											if (crosswalkObject != null && crosswalkObject.getCrosswalks() != null
-													&& !crosswalkObject.getCrosswalks().isEmpty()) {
-												dataloadErrors.setCrosswalkType(
-														crosswalkObject.getCrosswalks().get(0).getType());
-												dataloadErrors.setCrosswalkValue(
-														crosswalkObject.getCrosswalks().get(0).getValue() + "");
-											}
-											List<ReltioDataloadErrors> reltioDataloadErrors = dataloaderInput
-													.getDataloadErrorsMap().get(dataloadErrors.getErrorCode());
-											if (reltioDataloadErrors == null) {
-												reltioDataloadErrors = new ArrayList<>();
-											}
-											reltioDataloadErrors.add(dataloadErrors);
-											dataloaderInput.getDataloadErrorsMap().put(dataloadErrors.getErrorCode(),
-													reltioDataloadErrors);
-										}
-									}
-
-									dataloaderInput.addFailureCount(failCcount);
-									dataloaderInput.addSuccessCount(sucCount);
-
-									if (failCcount > 0) {
-										logger.info("Success entities=" + sucCount + "|Total Sent entities="
-												+ currentCount + "| Failed Entity Count=" + failCcount + "|" + "ERROR:"
-												+ result + "\nFailure Count: " + failCcount + "|"
-												+ GSON.toJson(failedRecords));
-										reltioFileWriter.writeToFile(
-												"Failure Count: " + failCcount + "|" + GSON.toJson(failedRecords));
-
-										for (Entry<Integer, List<ReltioDataloadErrors>> errorMap : dataloaderInput
-												.getDataloadErrorsMap().entrySet()) {
-											if (errorMap.getValue().size() > MAX_FAILURE_COUNT) {
-												dataloaderInput
-														.setLastUpdateTime(sdf.format(System.currentTimeMillis()));
-												dataloaderInput.setStatus("Aborted");
-												processTrackerService.sendProcessTrackerUpdate(true);
-												logger.error(
-														"Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
-												System.exit(-1);
-											}
-										}
-
-									} else {
-										logger.info("Success entities=" + sucCount + "|Total Sent entities="
-												+ currentCount);
-									}
 
 									long updateTime = System.currentTimeMillis() - pStartTime[0];
 									int minutes = (int) ((updateTime / (1000 * 60)) % 60);
@@ -395,7 +333,7 @@ public class LoadJsonToTenant {
 								} catch (GenericException e) {
 									List<ReltioCrosswalkObject> crosswalkObjects = GSON.fromJson(stringToSend,
 											new TypeToken<List<ReltioCrosswalkObject>>() {
-											}.getType());
+									}.getType());
 									dataloaderInput.addFailureCount(crosswalkObjects.size());
 									List<ReltioDataloadErrors> dataloadErrors = dataloaderInput.getDataloadErrorsMap()
 											.get(DEFAULT_ERROR_CODE);
@@ -409,7 +347,7 @@ public class LoadJsonToTenant {
 										reltioDataloadError.setErrorCode(DEFAULT_ERROR_CODE);
 										reltioDataloadError.setErrorMessage(e.getExceptionMessage());
 										reltioDataloadError
-												.setCrosswalkType(crosswalkObject.getCrosswalks().get(0).getType());
+										.setCrosswalkType(crosswalkObject.getCrosswalks().get(0).getType());
 										reltioDataloadError.setCrosswalkValue(
 												(String) crosswalkObject.getCrosswalks().get(0).getValue());
 										dataloadErrors.add(reltioDataloadError);
@@ -445,7 +383,7 @@ public class LoadJsonToTenant {
 
 									List<ReltioCrosswalkObject> crosswalkObjects = GSON.fromJson(stringToSend,
 											new TypeToken<List<ReltioCrosswalkObject>>() {
-											}.getType());
+									}.getType());
 									dataloaderInput.addFailureCount(crosswalkObjects.size());
 
 									List<ReltioDataloadErrors> dataloadErrors = dataloaderInput.getDataloadErrorsMap()
@@ -459,7 +397,7 @@ public class LoadJsonToTenant {
 										reltioDataloadError.setErrorCode(e.getErrorCode());
 										reltioDataloadError.setErrorMessage(e.getErrorResponse());
 										reltioDataloadError
-												.setCrosswalkType(crosswalkObject.getCrosswalks().get(0).getType());
+										.setCrosswalkType(crosswalkObject.getCrosswalks().get(0).getType());
 										reltioDataloadError.setCrosswalkValue(
 												(String) crosswalkObject.getCrosswalks().get(0).getValue());
 										dataloadErrors.add(reltioDataloadError);
@@ -546,7 +484,7 @@ public class LoadJsonToTenant {
 				processTrackerService.sendProcessTrackerUpdate(true);
 			} catch (GenericException | ReltioAPICallFailureException e) {
 
-			 
+
 				logger.error(
 						"Dataload process completed.... But final update of process tracket not sent to tenant...",e.getMessage());
 			}
@@ -557,13 +495,188 @@ public class LoadJsonToTenant {
 	}
 
 	/**
+	 * Process response based on api response
+	 * 
+	 * @param result
+	 * @param dataloaderInput
+	 * @param stringToSend
+	 * @param uriWriter
+	 * @param totalRecordsSent
+	 * @param currentCount
+	 * @param reltioFileWriter
+	 * @param processTrackerService
+	 * @throws GenericException
+	 * @throws ReltioAPICallFailureException
+	 * @throws IOException
+	 */
+	private static void processResponse(String result,DataloaderInput dataloaderInput, String stringToSend, ReltioCSVFileWriter uriWriter,
+			List<Object> totalRecordsSent, int currentCount, ReltioFileWriter reltioFileWriter, ProcessTrackerService processTrackerService) throws GenericException, ReltioAPICallFailureException, IOException {
+
+		List<Object> failedRecords = new ArrayList<Object>();
+		List<ReltioDataloadResponse> dataloadResponses = new ArrayList<>();
+		int sucCount = 0;
+		int failCcount = 0;
+
+		if(dataloaderInput.getIsAlwaysCreateDCR()) {
+			if(!result.contains("\"uri\":\"changeRequests")) {
+				/*
+				 * Error creating Chagerequest
+				 */
+				dataloadResponses = GSON.fromJson(result,
+						new TypeToken<List<ReltioDataloadResponse>>() {
+				}.getType());
+
+
+				failedRecords.add(dataloadResponses.get(0));
+				failCcount++;
+				dataloaderInput.addFailureCount(failCcount);
+
+			}else {
+				sucCount++;
+				dataloaderInput.addSuccessCount(sucCount);
+
+				if (dataloaderInput.getURIrequired()) {
+					writeChangeRequestUris(uriWriter, stringToSend, result);
+				}
+			}
+		}else {
+			if( result.contains("\"uri\":\"changeRequests")) {
+				
+				Util.close(uriWriter, reltioFileWriter);
+
+				/*
+				 * Throw Error because the user has INITIATE_CHANGE_REQUST permission only. So stopping process execution 
+				 */
+
+				logger.fatal("Error!!!  System is exiting.................");
+				logger.fatal("The user does not permission to create/update entities, but has permission to InitiateChangeRequests. ");
+				logger.fatal("Please give the user Create/Update permission or use ALWAYS_CREATE_DCR=true option to create changerequests only.");
+				System.exit(-1);
+				
+			}else {
+
+				
+				dataloadResponses = GSON.fromJson(result,
+						new TypeToken<List<ReltioDataloadResponse>>() {
+				}.getType());
+
+				if (dataloaderInput.getURIrequired()) {
+					writeUris(uriWriter, stringToSend, result);
+				}
+
+				for (ReltioDataloadResponse reltioDataloadResponse : dataloadResponses) {
+					if (reltioDataloadResponse.getSuccessful()) {
+
+						sucCount++;
+					} else {
+						failCcount++;
+
+						Object failedRec = totalRecordsSent.get(reltioDataloadResponse.getIndex());
+						failedRecords.add(failedRec);
+						ReltioDataloadErrors dataloadErrors = reltioDataloadResponse.getErrors();
+						ReltioCrosswalkObject crosswalkObject = GSON
+								.fromJson(GSON.toJson(failedRec), ReltioCrosswalkObject.class);
+
+						if (crosswalkObject != null && crosswalkObject.getCrosswalks() != null
+								&& !crosswalkObject.getCrosswalks().isEmpty()) {
+							dataloadErrors.setCrosswalkType(
+									crosswalkObject.getCrosswalks().get(0).getType());
+							dataloadErrors.setCrosswalkValue(
+									crosswalkObject.getCrosswalks().get(0).getValue() + "");
+						}
+						List<ReltioDataloadErrors> reltioDataloadErrors = dataloaderInput
+								.getDataloadErrorsMap().get(dataloadErrors.getErrorCode());
+						if (reltioDataloadErrors == null) {
+							reltioDataloadErrors = new ArrayList<>();
+						}
+						reltioDataloadErrors.add(dataloadErrors);
+						dataloaderInput.getDataloadErrorsMap().put(dataloadErrors.getErrorCode(),
+								reltioDataloadErrors);
+					}
+				}
+
+				dataloaderInput.addFailureCount(failCcount);
+				dataloaderInput.addSuccessCount(sucCount);
+
+			}
+		}
+		
+		
+
+		if (failCcount > 0) {
+			logger.info("Success entities=" + sucCount + "|Total Sent entities="
+					+ currentCount + "| Failed Entity Count=" + failCcount + "|" + "ERROR:"
+					+ result + "\nFailure Count: " + failCcount + "|"
+					+ GSON.toJson(failedRecords));
+			reltioFileWriter.writeToFile(
+					"Failure Count: " + failCcount + "|" + GSON.toJson(failedRecords));
+
+			for (Entry<Integer, List<ReltioDataloadErrors>> errorMap : dataloaderInput
+					.getDataloadErrorsMap().entrySet()) {
+				if (errorMap.getValue().size() > MAX_FAILURE_COUNT) {
+					dataloaderInput
+					.setLastUpdateTime(sdf.format(System.currentTimeMillis()));
+					dataloaderInput.setStatus("Aborted");
+					processTrackerService.sendProcessTrackerUpdate(true);
+					logger.error(
+							"Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
+					System.exit(-1);
+				}
+			}
+
+		} else {
+			logger.info("Success entities=" + sucCount + "|Total Sent entities="
+					+ currentCount);
+		}
+
+
+
+	}
+
+	/**
+	 * This will write uris created in tenant with the cross walks info passed
+	 */
+	public static void writeChangeRequestUris(ReltioCSVFileWriter writer, String apiRequest, String apiResponse) {
+
+		EntityRequest[] entityRequest = GSON.fromJson(apiRequest, EntityRequest[].class);
+		ReltioDataloadCRResponse crResponse = GSON.fromJson(apiResponse, ReltioDataloadCRResponse.class);
+
+		List<String[]> writeLines = new ArrayList<>();
+
+
+		EntityRequest request = entityRequest[0];
+		List<Crosswalk> requestCrosswalks = request.getCrosswalks();
+		ReltioDataloadCRResponse response = crResponse;
+
+		List<String> data = new ArrayList<>();
+
+		if(crResponse.getChanges() != null && crResponse.getChanges().size() > 0) {
+			data.add(crResponse.getChanges().entrySet().iterator().next().getKey());
+		}
+
+		data.add(response.getUri());
+
+		for (Crosswalk xwalk : requestCrosswalks) {
+
+			data.add(xwalk.getType());
+			data.add(xwalk.getValue());
+			data.add(xwalk.getSourceTable());
+			data.add(String.valueOf(xwalk.isDataProvider() ? "true" : ""));
+		}
+
+		writeLines.add(data.stream().toArray(String[]::new));
+
+		writer.writeToFile(writeLines);
+	}
+
+	/**
 	 * This will write uris created in tenant with the cross walks info passed
 	 */
 	public static void writeUris(ReltioCSVFileWriter writer, String apiRequest, String apiResponse) {
 
 		EntityRequest[] entityRequest = GSON.fromJson(apiRequest, EntityRequest[].class);
 		EntityResponse[] entityResponse = GSON.fromJson(apiResponse, EntityResponse[].class);
-		
+
 		List<String[]> writeLines = new ArrayList<>();
 
 		for (int i = 0; i < entityRequest.length; i++) {
@@ -574,6 +687,11 @@ public class LoadJsonToTenant {
 
 			if (i != response.getIndex()) {
 				logger.error("index did not match " + i + ", = " + response.getIndex());
+				continue;
+			}
+
+			if(!response.getSuccessful()) {
+				logger.error("Operation is not successful");
 				continue;
 			}
 
