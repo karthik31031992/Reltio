@@ -81,8 +81,7 @@ public class LoadJsonToTenant {
 				logger.error("Validation failed as configuration file passed does not exist = " + propertyFilePath);
 				return;
 			}
-			properties = Util.getProperties(propertyFilePath, "PASSWORD");
-			Util.setHttpProxy(properties);
+			properties = Util.getProperties(propertyFilePath, "PASSWORD", "CLIENT_CREDENTIALS");			Util.setHttpProxy(properties);
 		} catch (Exception e) {
 			logger.error("Failed to Read the Properties File :: ", e.getMessage());
 			return;
