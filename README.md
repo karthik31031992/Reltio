@@ -12,7 +12,7 @@ v2.6.3
 Last Updated Date  : 23nd September 2019
 LUB                : shivaputrappa Patil
 Version            : 2.6.3
-Description        : https://reltio.jira.com/browse/ROCS-77
+Description        : https://reltio.jira.com/browse/ROCS-77, (Client credentials implementation)
 
 
 v2.6.2
