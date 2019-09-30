@@ -1,44 +1,8 @@
 package com.reltio.cst.dataload.impl;
 
-import static com.reltio.cst.dataload.DataloadConstants.DEFAULT_ERROR_CODE;
-import static com.reltio.cst.dataload.DataloadConstants.GSON;
-import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_ARRAY;
-import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_PIPE;
-import static com.reltio.cst.dataload.DataloadConstants.MAX_FAILURE_COUNT;
-import static com.reltio.cst.dataload.util.DataloadFunctions.printDataloadPerformance;
-import static com.reltio.cst.dataload.util.DataloadFunctions.sendEntities;
-import static com.reltio.cst.dataload.util.DataloadFunctions.waitForTasksReady;
-import static com.reltio.cst.dataload.util.DataloadFunctions.waitForTenantStatus;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.gson.reflect.TypeToken;
 import com.reltio.cst.dataload.DataloadConstants;
-import com.reltio.cst.dataload.domain.Crosswalk;
-import com.reltio.cst.dataload.domain.DataloaderInput;
-import com.reltio.cst.dataload.domain.EntityRequest;
-import com.reltio.cst.dataload.domain.EntityResponse;
-import com.reltio.cst.dataload.domain.ReltioCrosswalkObject;
-import com.reltio.cst.dataload.domain.ReltioDataloadCRResponse;
-import com.reltio.cst.dataload.domain.ReltioDataloadErrors;
-import com.reltio.cst.dataload.domain.ReltioDataloadResponse;
+import com.reltio.cst.dataload.domain.*;
 import com.reltio.cst.dataload.impl.helper.ProcessTrackerService;
 import com.reltio.cst.dataload.util.DataloadFunctions;
 import com.reltio.cst.exception.handler.APICallFailureException;
@@ -47,14 +11,25 @@ import com.reltio.cst.exception.handler.ReltioAPICallFailureException;
 import com.reltio.cst.service.ReltioAPIService;
 import com.reltio.cst.service.TokenGeneratorService;
 import com.reltio.cst.service.impl.SimpleReltioAPIServiceImpl;
-import com.reltio.cst.service.impl.SimpleRestAPIServiceImpl;
 import com.reltio.cst.service.impl.TokenGeneratorServiceImpl;
 import com.reltio.cst.util.Util;
-import com.reltio.file.ReltioCSVFileWriter;
-import com.reltio.file.ReltioFileReader;
-import com.reltio.file.ReltioFileWriter;
-import com.reltio.file.ReltioFlatFileReader;
-import com.reltio.file.ReltioFlatFileWriter;
+import com.reltio.file.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import static com.reltio.cst.dataload.DataloadConstants.*;
+import static com.reltio.cst.dataload.util.DataloadFunctions.*;
 
 public class LoadJsonToTenant {
 
@@ -108,8 +83,6 @@ public class LoadJsonToTenant {
 			return;
 		}
 
-		SimpleRestAPIServiceImpl.setupRequestsLogger(dataloaderInput.getRequestsLogFilePath());
-
 		try {
 			final ReltioFileWriter reltioFileWriter = new ReltioFlatFileWriter(
 					dataloaderInput.getFailedRecordsFileName());
@@ -162,24 +135,11 @@ public class LoadJsonToTenant {
 						StandardCharsets.UTF_8.name());
 			}
 
-			// Create Token Generator Service
-			TokenGeneratorService tokenGeneratorService = null;
-			try {
-				tokenGeneratorService = new TokenGeneratorServiceImpl(dataloaderInput.getUsername(),
-						dataloaderInput.getPassword(), dataloaderInput.getAuthURL());
-			} catch (APICallFailureException | GenericException e2) {
-				logger.debug(e2);
-				logger.error(
-						"Token Generation Process Failed. Please verify username/password and restart the process again...");
-				System.exit(-1);
-			}
-			tokenGeneratorService.startBackgroundTokenGenerator();
 
 			logger.info("DataLoad started for Tenant :: " + apiUrl);
 			// System.out.println("DataLoad started for Tenant :: " + apiUrl);
 
-			final ReltioAPIService reltioAPIService = new SimpleReltioAPIServiceImpl(tokenGeneratorService,
-					dataloaderInput.getTimeoutInMinutes());
+			final ReltioAPIService reltioAPIService =  Util.getReltioService(properties);
 			final ProcessTrackerService processTrackerService = new ProcessTrackerService(dataloaderInput,
 					reltioAPIService);
 			int count = 0;
@@ -478,7 +438,6 @@ public class LoadJsonToTenant {
 
 			Util.close(uriWriter, fileReader, reltioFileWriter);
 
-			tokenGeneratorService.stopBackgroundTokenGenerator();
 			try {
 				processTrackerService.sendProcessTrackerUpdate(true);
 			} catch (GenericException | ReltioAPICallFailureException e) {
@@ -488,7 +447,6 @@ public class LoadJsonToTenant {
 						"Dataload process completed.... But final update of process tracket not sent to tenant...",e.getMessage());
 			}
 		} finally {
-			SimpleRestAPIServiceImpl.shutdownRequestsLogger();
 		}
 
 	}
