@@ -92,8 +92,6 @@ public class DataloaderInput implements Serializable {
 			"TENANT_ID",
 			"DATALOAD_TYPE",
 			"TYPE_OF_DATA",
-			"USERNAME",
-			"PASSWORD",
 			"AUTH_URL",
 			"JSON_FILE");
 
@@ -105,7 +103,11 @@ public class DataloaderInput implements Serializable {
 	 * @param properties
 	 */
 	public DataloaderInput(Properties properties) {
-		List<String> missingProps = Util.listMissingProperties(properties, requiredProps);
+		Map<List<String>, List<String>> mutualExclusiveProps = new HashMap<>();
+
+		mutualExclusiveProps.put(Arrays.asList("PASSWORD","USERNAME"), Arrays.asList("CLIENT_CREDENTIALS"));
+
+		List<String> missingProps = Util.listMissingProperties(properties, requiredProps, mutualExclusiveProps);
 
 		if (missingProps != null && missingProps.size() > 0) {
 			logger.error("Process Aborted due to insufficient input properties... Below are the list of missing properties");
