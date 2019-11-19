@@ -8,6 +8,15 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 
 ```
+
+v2.6.4
+Last Updated Date  : 19th Nov 2019
+LUB                : Vignesh Chandran
+Version            : 2.6.4
+Description        : https://reltio.jira.com/browse/CUST-3115
+                     Bug Fix in Process Tracker Json.
+
+
 v2.6.3
 Last Updated Date  : 23nd September 2019
 LUB                : shivaputrappa Patil

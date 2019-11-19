@@ -1,5 +1,7 @@
 package com.reltio.cst.dataload.impl.helper;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.reltio.cst.dataload.DataloadConstants;
 import com.reltio.cst.dataload.domain.DataloaderInput;
@@ -30,14 +32,12 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static com.reltio.cst.dataload.DataloadConstants.GSON;
 import static com.reltio.cst.dataload.util.DataloadFunctions.getAttribute;
 
 public class ProcessTrackerService {
 
     private static final Logger logger = LogManager.getLogger(ProcessTrackerService.class.getName());
-
-
+    private static Gson GSON = new GsonBuilder().create();
     private ProcessTrackerObject processTrackerObject;
     private Metrics metrics;
     private DataloaderInput dataloaderInput;
@@ -107,11 +107,14 @@ public class ProcessTrackerService {
             metrics.value = metricsAttributes;
             processTrackerObject.attributes.Metrics.add(metrics);
 
+            String processTrackerJson = "[" + GSON.toJson(processTrackerObject)
+                    + "]";
+            logger.debug(processTrackerJson);
+
             String responseEntity = reltioAPIService.post(
                     dataloaderInput.getBaseDataloadURL()
                             + "/entities?returnUriOnly=true",
-                    "[" + DataloadConstants.GSON.toJson(processTrackerObject)
-                            + "]");
+                    processTrackerJson);
             extractPCURI(responseEntity);
         }
     }
@@ -227,11 +230,14 @@ public class ProcessTrackerService {
                         dataloaderInput.getTotalOPSWithoutQueue());
             }
 
+            String processTrackerJson = "[" + GSON.toJson(processTrackerObject)
+                    + "]";
+            logger.debug(processTrackerJson);
+
             String responseEntity = reltioAPIService.post(
                     dataloaderInput.getBaseDataloadURL()
                             + "/entities?returnUriOnly=true",
-                    "[" + DataloadConstants.GSON.toJson(processTrackerObject)
-                            + "]");
+                    processTrackerJson);
             if (pcURI == null) {
 
                 extractPCURI(responseEntity);
