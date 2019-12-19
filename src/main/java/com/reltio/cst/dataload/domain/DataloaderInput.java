@@ -103,18 +103,6 @@ public class DataloaderInput implements Serializable {
 	 * @param properties
 	 */
 	public DataloaderInput(Properties properties) {
-		Map<List<String>, List<String>> mutualExclusiveProps = new HashMap<>();
-
-		mutualExclusiveProps.put(Arrays.asList("PASSWORD","USERNAME"), Arrays.asList("CLIENT_CREDENTIALS"));
-
-		List<String> missingProps = Util.listMissingProperties(properties, requiredProps, mutualExclusiveProps);
-
-		if (missingProps != null && missingProps.size() > 0) {
-			logger.error("Process Aborted due to insufficient input properties... Below are the list of missing properties");
-			logger.error(missingProps);
-
-			System.exit(-1);
-		}
 
 		if (!checkNull(properties.getProperty("RECORDS_PER_POST"))) {
 			groupsCount = RECORDS_PER_POST;
@@ -149,13 +137,6 @@ public class DataloaderInput implements Serializable {
 		smtp_password = properties.getProperty("SMTP_PASSWORD");
 		smpt_host = properties.getProperty("MAIL_SMTP_HOST", "email-smtp.us-east-1.amazonaws.com");
 
-
-		if (!checkNull(properties.getProperty("TIMEOUT_IN_MINUTES"))) {
-			setTimeoutInMinutes(DEFAULT_TIMEOUT_IN_MINUTES);
-		} else {
-			setTimeoutInMinutes(Integer.parseInt(properties
-					.getProperty("TIMEOUT_IN_MINUTES")));
-		}
 
 		authURL = properties.getProperty("AUTH_URL");
 		userComments = properties.getProperty("USER_COMMENTS");
