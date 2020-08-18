@@ -8,6 +8,13 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 
 ```
+v2.6.4
+Last Updated Date  : 18th Aug 2020
+LUB                : Added headers
+Version            : 2.6.5
+Description        : Added headers for the URI file created and 
+                    Updated property from IS_CREATED_REQUIRED to IS_CREATED_URI_REQUIRED 
+
 
 v2.6.4
 Last Updated Date  : 19th Nov 2019

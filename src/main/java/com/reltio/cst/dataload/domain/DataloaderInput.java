@@ -227,7 +227,7 @@ public class DataloaderInput implements Serializable {
 					.getProperty("MAX_OBJECTS_TO_UPDATE"));
 		}
 
-		isURIrequired = Boolean.valueOf(properties.getProperty("IS_CREATED_REQUIRED","false"));
+		isURIrequired = Boolean.valueOf(properties.getProperty("IS_CREATED_URI_REQUIRED","false"));
 		uriFilePath = (properties.getProperty("URI_FILE","uris.csv"));
 
 	}
