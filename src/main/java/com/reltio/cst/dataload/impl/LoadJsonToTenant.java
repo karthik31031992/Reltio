@@ -173,12 +173,11 @@ public class LoadJsonToTenant {
 
 			List<Future<Long>> futures = new ArrayList<>();
 
-			ReltioCSVFileWriter uriWriter = new ReltioCSVFileWriter(dataloaderInput.getUriFilePath());
+			ReltioCSVFileWriter uriWriter = new ReltioCSVFileWriter(dataloaderInput.getUriFilePath(),"UTF-8");
 
 			if (dataloaderInput.getURIrequired()) {
-				String[] header = { "Uri", "SourceSystem1", "SourceSystemValue1", "SourceSystemTable1",
-						"isDataProvider", "SourceSystem2", "SourceSystemValue2", "SourceSystemTable2",
-						"isDataProvider" };
+				String[] header = { "Uri", "SourceSystem", "SourceSystemValue", "SourceSystemTable",
+						"isDataProvider", };
 
 				uriWriter.writeToFile(header);
 
@@ -672,20 +671,13 @@ public class LoadJsonToTenant {
 
 			data.add(response.getUri());
 
-			for (Crosswalk xwalk : requestCrosswalks) {
+			Crosswalk xwalk = requestCrosswalks.get(0);
 
-				data.add(xwalk.getType());
-				data.add(xwalk.getValue());
-				data.add(xwalk.getSourceTable());
-
-				if (xwalk.isDataProvider()) {
-					data.add("true");
-				} else {
-					data.add(null);
-				}
-
-			}
-
+			data.add(xwalk.getType());
+			data.add(xwalk.getValue());
+			data.add(xwalk.getSourceTable());
+			data.add(xwalk.isDataProvider() ? "true" : null);
+		
 			writeLines.add(data.stream().toArray(String[]::new));
 		}
 
