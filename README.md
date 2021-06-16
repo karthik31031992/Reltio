@@ -8,6 +8,11 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 
 ```
+v2.6.6
+Last Updated Date  : 16th Jun 2021
+LUB                : Karthik Athota
+Version            : 2.6.6
+Description        : Added new functionality to Read File from S3 and Load into Reltio Tenant
 
 v2.6.4
 Last Updated Date  : 19th Nov 2019

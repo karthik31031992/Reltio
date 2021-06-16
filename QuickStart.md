@@ -29,6 +29,8 @@ HTTP_PROXY_HOST=
 HTTP_PROXY_PORT=
 #This property used for to get the access token using client_credentials grant type. The value for this property can be obtained by encoding the client name and secret separated by colon in Base64 format. (clientname:clientsecret)
 CLIENT_CREDENTIALS =
+INPUT_FILE_LOCATION= Location of the file where it is located|S3 or Local
+BUCKET= AWS_Bucket name
 
 
 
