@@ -15,12 +15,9 @@ import com.reltio.cst.dataload.util.DataloadFunctions;
 import com.reltio.cst.exception.handler.GenericException;
 import com.reltio.cst.exception.handler.ReltioAPICallFailureException;
 import com.reltio.cst.service.ReltioAPIService;
+//import com.reltio.cst.util.Util;
 import com.reltio.cst.util.Util;
-import com.reltio.file.ReltioCSVFileWriter;
-import com.reltio.file.ReltioFileReader;
-import com.reltio.file.ReltioFileWriter;
-import com.reltio.file.ReltioFlatFileReader;
-import com.reltio.file.ReltioFlatFileWriter;
+import com.reltio.file.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -75,13 +72,14 @@ public class LoadJsonToTenant {
                 logger.error("Validation failed as configuration file passed does not exist = " + propertyFilePath);
                 return;
             }
-            properties = Util.getProperties(propertyFilePath, "PASSWORD", "CLIENT_CREDENTIALS");
+            properties = Util.getProperties(propertyFilePath, "PASSWORD", "CLIENT_CREDENTIALS","AWSSECRETKEY","AWSKEY");
             Util.setHttpProxy(properties);
         } catch (Exception e) {
             logger.error("Failed to Read the Properties File :: ", e.getMessage());
             return;
         }
 
+        //final DataloaderInput dataloaderInput = new DataloaderInput(properties);
         final DataloaderInput dataloaderInput = new DataloaderInput(properties);
 
         if (args != null && args.length > 1) {
@@ -104,8 +102,15 @@ public class LoadJsonToTenant {
         }
 
         try {
-            final ReltioFileWriter reltioFileWriter = new ReltioFlatFileWriter(
-                    dataloaderInput.getFailedRecordsFileName());
+            String inputfile = dataloaderInput.getInputfilelocation();
+            if (inputfile.equalsIgnoreCase("S3")) {
+                //final ReltioFileWriter reltioFileWriter = new ReltioFlatFileWriter(
+                //        dataloaderInput.getFailedRecordsFileName());
+                ReltioS3FlatFileWriter reltioFileWriter = new ReltioS3FlatFileWriter(dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion(), dataloaderInput.getBucket(), dataloaderInput.getFailedRecordsFileName());
+            } else {
+                ReltioFileWriter reltioFileWriter = new ReltioFlatFileWriter(
+                        dataloaderInput.getFailedRecordsFileName());
+            }
 
             Map<String, String> params = new HashMap<>();
 
@@ -147,12 +152,23 @@ public class LoadJsonToTenant {
                     .newFixedThreadPool(dataloaderInput.getThreadCount());
 
             ReltioFileReader fileReader;
-            if (dataloaderInput.getJsonFileType().equalsIgnoreCase(JSON_FILE_TYPE_PIPE)) {
-                fileReader = new ReltioFlatFileReader(dataloaderInput.getFileName(), "|",
-                        StandardCharsets.UTF_8.name());
+            if (inputfile.equalsIgnoreCase("S3")) {
+                if (dataloaderInput.getJsonFileType().equalsIgnoreCase(JSON_FILE_TYPE_PIPE)) {
+                    fileReader = new ReltioS3FlatFileReader(dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion(), dataloaderInput.getBucket(), dataloaderInput.getFileName(), "|",
+                            StandardCharsets.UTF_8.name());
+                } else {
+                    fileReader = new ReltioS3FlatFileReader(dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion(), dataloaderInput.getBucket(), dataloaderInput.getFileName(), "|",
+                            StandardCharsets.UTF_8.name());
+                }
             } else {
-                fileReader = new ReltioFlatFileReader(dataloaderInput.getFileName(), null,
-                        StandardCharsets.UTF_8.name());
+                if (dataloaderInput.getJsonFileType().equalsIgnoreCase(JSON_FILE_TYPE_PIPE)) {
+                    fileReader = new ReltioFlatFileReader(dataloaderInput.getFileName(), "|",
+                            StandardCharsets.UTF_8.name());
+                } else {
+                    fileReader = new ReltioFlatFileReader(dataloaderInput.getFileName(), "|",
+                            StandardCharsets.UTF_8.name());
+                }
+
             }
 
 
@@ -172,9 +188,15 @@ public class LoadJsonToTenant {
             boolean eof = false;
 
             List<Future<Long>> futures = new ArrayList<>();
+            if (inputfile.equalsIgnoreCase("S3")) {
 
-            ReltioCSVFileWriter uriWriter = new ReltioCSVFileWriter(dataloaderInput.getUriFilePath());
+                //ReltioCSVFileWriter uriWriter = new ReltioCSVFileWriter(dataloaderInput.getUriFilePath());
+                ReltioS3CSVFileWriter uriWriter = new ReltioS3CSVFileWriter(dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion(), dataloaderInput.getBucket(), dataloaderInput.getUriFilePath());
+            } else {
+                ReltioCSVFileWriter uriWriter = new ReltioCSVFileWriter(dataloaderInput.getUriFilePath());
+            }
 
+            ReltioFileWriter reltioFileWriter = null;
             while (!eof) {
 
                 try {
@@ -292,6 +314,7 @@ public class LoadJsonToTenant {
                                             reltioAPIService);
 
 
+                                    ReltioS3CSVFileWriter uriWriter = null;
                                     processResponse(result, dataloaderInput, stringToSend, uriWriter, totalRecordsSent, currentCount, reltioFileWriter, processTrackerService);
 
 
@@ -456,6 +479,7 @@ public class LoadJsonToTenant {
             dataloaderInput.setTotalQueueWaitingTime(totalQueueWaitingTime);
             executorService.shutdown();
 
+            AutoCloseable uriWriter = null;
             Util.close(uriWriter, fileReader, reltioFileWriter);
 
             try {
@@ -486,7 +510,7 @@ public class LoadJsonToTenant {
      * @throws ReltioAPICallFailureException
      * @throws IOException
      */
-    private static void processResponse(String result, DataloaderInput dataloaderInput, String stringToSend, ReltioCSVFileWriter uriWriter,
+    private static void processResponse(String result, DataloaderInput dataloaderInput, String stringToSend, ReltioS3CSVFileWriter uriWriter,
                                         List<Object> totalRecordsSent, int currentCount, ReltioFileWriter reltioFileWriter, ProcessTrackerService processTrackerService) throws GenericException, ReltioAPICallFailureException, IOException {
 
         List<Object> failedRecords = new ArrayList<Object>();
@@ -611,7 +635,7 @@ public class LoadJsonToTenant {
     /**
      * This will write uris created in tenant with the cross walks info passed
      */
-    public static void writeChangeRequestUris(ReltioCSVFileWriter writer, String apiRequest, String apiResponse) {
+    public static void writeChangeRequestUris(ReltioS3CSVFileWriter writer, String apiRequest, String apiResponse) {
 
         EntityRequest[] entityRequest = GSON.fromJson(apiRequest, EntityRequest[].class);
         ReltioDataloadCRResponse crResponse = GSON.fromJson(apiResponse, ReltioDataloadCRResponse.class);
@@ -647,7 +671,7 @@ public class LoadJsonToTenant {
     /**
      * This will write uris created in tenant with the cross walks info passed
      */
-    public static void writeUris(ReltioCSVFileWriter writer, String apiRequest, String apiResponse) {
+    public static void writeUris(ReltioS3CSVFileWriter writer, String apiRequest, String apiResponse) {
 
         EntityRequest[] entityRequest = GSON.fromJson(apiRequest, EntityRequest[].class);
         EntityResponse[] entityResponse = GSON.fromJson(apiResponse, EntityResponse[].class);
