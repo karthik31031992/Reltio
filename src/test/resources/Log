@@ -1,0 +1,39 @@
+2021-06-21 18:00:08,383 ERROR - Invalid/Missing Property or Property value is empty.. Skipping this property : CLIENT_CREDENTIALS
+2021-06-21 18:00:08,391 ERROR - Invalid/Missing Property or Property value is empty.. Skipping this property : AWSSECRETKEY
+2021-06-21 18:00:08,391 ERROR - Invalid/Missing Property or Property value is empty.. Skipping this property : AWSKEY
+2021-06-21 18:00:08,652 INFO  - DataLoad started for Tenant :: https://test-usg.reltio.com/reltio/api/vxMJkcgLy2oXIMB/entities?maxObjectsToUpdate=-1&returnUriOnly=true
+2021-06-21 18:00:10,828 INFO  - [Queues]: Main events queue size = 0, Matching queue size = 0, Status =Green
+2021-06-21 18:00:10,860 INFO  - [Performance]: ============= Current performance status (Mon Jun 21 18:00:10 IST 2021) =============
+2021-06-21 18:00:10,863 INFO  - [Performance]:  Total processing time : 2471
+2021-06-21 18:00:10,863 INFO  - [Performance]:  Total queue waiting time : 460
+2021-06-21 18:00:10,863 INFO  - [Performance]:  Entities sent: 0
+2021-06-21 18:00:10,863 INFO  - [Performance]:  Total OPS (Entities sent / Time spent from program start): 0.0
+2021-06-21 18:00:10,863 INFO  - [Performance]:  Total OPS without waiting for queue (Entities sent / (Time spent from program start - Time spent in waiting for API queue)): 0.0
+2021-06-21 18:00:10,863 INFO  - [Performance]:  API Server data load requests OPS (Entities sent / (Sum of time spend by API requests / Threads count)): NaN
+2021-06-21 18:00:10,863 INFO  - [Performance]: ===============================================================================================================
+2021-06-21 18:00:10,863 INFO  - [Performance]: ============= Current performance status (Mon Jun 21 18:00:10 IST 2021) =============
+2021-06-21 18:00:10,863 INFO  - [Performance]:  Total processing time : 2471
+2021-06-21 18:00:10,864 INFO  - [Performance]:  Total queue waiting time : 460
+2021-06-21 18:00:10,864 INFO  - [Performance]:  Entities sent: 0
+2021-06-21 18:00:10,864 INFO  - [Performance]:  Total OPS (Entities sent / Time spent from program start): 0.0
+2021-06-21 18:00:10,864 INFO  - [Performance]:  Total OPS without waiting for queue (Entities sent / (Time spent from program start - Time spent in waiting for API queue)): 0.0
+2021-06-21 18:00:10,864 INFO  - [Performance]:  API Server data load requests OPS (Entities sent / (Sum of time spend by API requests / Threads count)): NaN
+2021-06-21 18:00:10,864 INFO  - [Performance]: ===============================================================================================================
+2021-06-21 18:00:11,476 INFO  - Success entities=19|Total Sent entities=19
+2021-06-21 18:00:11,484 INFO  - All data send to API. Program will not wait for Queue to get Empty.
+2021-06-21 18:00:11,485 INFO  - [Performance]: ============= Current performance status (Mon Jun 21 18:00:11 IST 2021) =============
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Total processing time : 3094
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Total queue waiting time : 460
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Entities sent: 19
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Total OPS (Entities sent / Time spent from program start): 6.140918
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Total OPS without waiting for queue (Entities sent / (Time spent from program start - Time spent in waiting for API queue)): 7.2133636
+2021-06-21 18:00:11,485 INFO  - [Performance]:  API Server data load requests OPS (Entities sent / (Sum of time spend by API requests / Threads count)): 306.45163
+2021-06-21 18:00:11,485 INFO  - [Performance]: ===============================================================================================================
+2021-06-21 18:00:11,485 INFO  - [Performance]: ============= Current performance status (Mon Jun 21 18:00:11 IST 2021) =============
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Total processing time : 3094
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Total queue waiting time : 460
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Entities sent: 19
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Total OPS (Entities sent / Time spent from program start): 6.140918
+2021-06-21 18:00:11,485 INFO  - [Performance]:  Total OPS without waiting for queue (Entities sent / (Time spent from program start - Time spent in waiting for API queue)): 7.2133636
+2021-06-21 18:00:11,485 INFO  - [Performance]:  API Server data load requests OPS (Entities sent / (Sum of time spend by API requests / Threads count)): 306.45163
+2021-06-21 18:00:11,485 INFO  - [Performance]: ===============================================================================================================
