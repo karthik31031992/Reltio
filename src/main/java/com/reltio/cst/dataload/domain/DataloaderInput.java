@@ -130,8 +130,12 @@ public class DataloaderInput implements Serializable {
 
         mutualExclusiveProps.put(Arrays.asList("PASSWORD", "USERNAME"), Arrays.asList("CLIENT_CREDENTIALS"));
 
-        List<String> missingProps = Util.listMissingProperties(properties, requiredProps, mutualExclusiveProps);
-        List<String> missingProps_s3 = Util.listMissingProperties(properties, requiredProps_s3, mutualExclusiveProps);
+        /*List<String> missingProps = Util.listMissingProperties(properties, requiredProps, mutualExclusiveProps);
+        List<String> missingProps_s3 = Util.listMissingProperties(properties, requiredProps_s3, mutualExclusiveProps);*/
+
+        List<String> missingProps = Util.listMissingProperties(properties, requiredProps);
+        List<String> missingProps_s3 = Util.listMissingProperties(properties, requiredProps_s3);
+
 
         if (missingProps != null && missingProps.size() > 0) {
             logger.error("Process Aborted due to insufficient input properties... Below are the list of missing properties");

@@ -10,6 +10,7 @@ The main method of the application is at the following path:
 
 1. gson-2.2.4
 2. reltio-cst-core-1.4.8
+3. reltio-util-json-generator-entity-3.1.5-jar-with-dependencies.jar
 
 
 ##Parameters File Example
@@ -32,6 +33,11 @@ CLIENT_CREDENTIALS =
 INPUT_FILE_LOCATION= Location of the file where it is located|S3 or Local
 BUCKET= AWS_Bucket name
 
+#AWS s3 Parameters
+AWS_KEY= Aws Key Id
+AWS_SECRET_KEY= Aws Secret Key 
+
+AWS_KEY & AWS_SECRET_KEY are not a mandatory parameters, we can pass them in Properties File , if we don't want to pass them in properties we can ignore , our process designed in such a way it will look for those in Environment Varibles or in User ~/.aws/crendetials file.
 
 
 #Flag whether to generate uri file 
@@ -79,9 +85,13 @@ SKIP_PROCESS_TRACKER=Option to Skip the process tracker|TRUE/FALSE
 
 ```
 ##Executing
-Command to start the utility.
-```
+Command to start the utility
 
+Using "Username" & "Password"
 java -jar reltio-util-dataload-processor-${version}-jar-with-dependencies.jar propertiesFile.txt > $logfilepath$
+
+Using "Refresh Token"
+java -jar reltio-util-dataload-processor-${version}-jar-with-dependencies.jar propertiesFile.txt Refreshtoken > $logfilepath$
+
          
 ```
