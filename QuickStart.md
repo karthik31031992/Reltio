@@ -9,8 +9,7 @@ The main method of the application is at the following path:
 ##Dependencies 
 
 1. gson-2.2.4
-2. reltio-cst-core-1.4.8
-3. reltio-util-json-generator-entity-3.1.5-jar-with-dependencies.jar
+2. reltio-cst-core-1.5.0
 
 
 ##Parameters File Example

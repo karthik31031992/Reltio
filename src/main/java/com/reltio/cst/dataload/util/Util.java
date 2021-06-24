@@ -205,7 +205,7 @@ public abstract class Util {
             String singleKey = var8[var10];
             String propertyValue = config.getProperty(singleKey);
             if (isEmpty(propertyValue)) {
-                logger.error("Invalid/Missing Property or Property value is empty.. Skipping this property : " + singleKey);
+                logger.warn("Invalid/Missing Property or Property value is empty.. Skipping this property : " + singleKey);
             } else if (!propertyValue.startsWith("ENC(")) {
                 logger.info("Encrypting " + singleKey + " ...");
                 config.setProperty(singleKey, "ENC(" + PasswordEncryptor.encryptPassword(config.getProperty(singleKey)) + ")");

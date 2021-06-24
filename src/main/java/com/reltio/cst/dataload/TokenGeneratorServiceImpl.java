@@ -188,11 +188,11 @@ public class TokenGeneratorServiceImpl extends Thread implements TokenGeneratorS
         String accessToken;
         try {
             logger.info("Getting New Token Using Refresh Token..", refreshToken);
-            accessToken = this.doAuthAPICall(url, "grant_type=refresh_token&refresh_token=" + URLEncoder.encode("59e67da1-5f45-4c38-8765-886d3da7c898", StandardCharsets.UTF_8.name()), retryCount);
+            accessToken = this.doAuthAPICall(url, "grant_type=refresh_token&refresh_token=" + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8.name()), retryCount);
             if (accessToken.equals("Invalid refresh token")) {
                 logger.info("Invalid Refresh Token.. Will Try again with new refresh token..");
                 //return this.getAccessToken(this.authURL, this.username, this.password, 1);
-                return this.doAuthAPICall(url, "grant_type=refresh_token&refresh_token=" + URLEncoder.encode("59e67da1-5f45-4c38-8765-886d3da7c898", StandardCharsets.UTF_8.name()), retryCount);
+                return this.doAuthAPICall(url, "grant_type=refresh_token&refresh_token=" + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8.name()), retryCount);
             }
         } catch (UnsupportedEncodingException var6) {
             throw new RuntimeException(var6);
