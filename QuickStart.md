@@ -36,7 +36,10 @@ BUCKET= AWS_Bucket name
 AWS_KEY= Aws Key Id
 AWS_SECRET_KEY= Aws Secret Key 
 
-AWS_KEY & AWS_SECRET_KEY are not a mandatory parameters, we can pass them in Properties File , if we don't want to pass them in properties we can ignore , our process designed in such a way it will look for those in Environment Varibles or in User ~/.aws/crendetials file.
+AWS_KEY & AWS_SECRET_KEY are not a mandatory parameters, we can pass them in Properties File ,if we dont pass them in the properties file then default credentials  for accessing the aws s3 .
+
+#Refresh_token
+If we dont want to pass username and password in properties file , we can pass refresh token as an command line argument instaed of username & password
 
 
 #Flag whether to generate uri file 

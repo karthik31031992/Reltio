@@ -190,7 +190,7 @@ public class LoadJsonToTenant {
                     reltioAPIService = Util.getReltioService(properties, null);
                 } else {
 
-                    reltioAPIService = Util.getReltioService(properties, refreshToken);
+                     reltioAPIService = Util.getReltioService(properties, refreshToken);
                 }
             //ReltioAPIService reltioAPIService = null;
             final ProcessTrackerService processTrackerService = new ProcessTrackerService(dataloaderInput,
