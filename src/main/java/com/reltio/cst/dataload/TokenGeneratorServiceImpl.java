@@ -13,14 +13,16 @@ import com.reltio.cst.service.RestAPIService;
 import com.reltio.cst.service.TokenGeneratorService;
 import com.reltio.cst.service.impl.SimpleRestAPIServiceImpl;
 import com.reltio.cst.util.GenericUtilityService;
-import java.io.UnsupportedEncodingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static com.reltio.cst.dataload.util.Util.isEmpty;
 
 public class TokenGeneratorServiceImpl extends Thread implements TokenGeneratorService {
     private static Logger logger = LoggerFactory.getLogger(TokenGeneratorServiceImpl.class.getName());
@@ -52,9 +54,9 @@ public class TokenGeneratorServiceImpl extends Thread implements TokenGeneratorS
     }
 
     public TokenGeneratorServiceImpl(String clientCredentials, String authURL) throws APICallFailureException, GenericException {
+        this.isClientCredentialsAuth = true;
+        this.clientCredentials = clientCredentials;
         if (!GenericUtilityService.checkNullOrEmpty(clientCredentials) && !clientCredentials.contains("RefreshToken") ) {
-            this.isClientCredentialsAuth = true;
-            this.clientCredentials = clientCredentials;
             if (GenericUtilityService.checkNullOrEmpty(authURL)) {
                 this.authURL = "https://auth.reltio.com/oauth/token";
             } else {
@@ -66,7 +68,7 @@ public class TokenGeneratorServiceImpl extends Thread implements TokenGeneratorS
         this.getNewToken();
         }
         else {
-            this.isrefreshTokenauth = true;
+            //this.isrefreshTokenauth = true;
             this.refreshToken = clientCredentials.replace("RefreshToken","");
             if (GenericUtilityService.checkNullOrEmpty(authURL)) {
                 this.authURL = "https://auth.reltio.com/oauth/token";
@@ -277,7 +279,7 @@ public class TokenGeneratorServiceImpl extends Thread implements TokenGeneratorS
     private void populateAuthHeaders() {
         if (!this.isClientCredentialsAuth()) {
             this.authHeaders.put("Authorization", "Basic cmVsdGlvX3VpOm1ha2l0YQ==");
-        } else if (!this.isRefreshTokenauth()) {
+        } else if (!isEmpty(refreshToken)) {
             this.authHeaders.put("Authorization", "Basic cmVsdGlvX3VpOm1ha2l0YQ==");
         }
         else {
@@ -318,18 +320,21 @@ public class TokenGeneratorServiceImpl extends Thread implements TokenGeneratorS
     public void setClientCredentials(String clientCredentials) {
         this.clientCredentials = clientCredentials;
     }
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = clientCredentials.replace("RefreshToken","");
+    }
 
     public boolean isClientCredentialsAuth() {
         return this.isClientCredentialsAuth;
     }
-    public boolean isRefreshTokenauth() {
+    public boolean isrefreshTokenAuth() {
         return this.isrefreshTokenauth;
     }
 
     public void setClientCredentialsAuth(boolean isClientCredentialsAuth) {
         this.isClientCredentialsAuth = isClientCredentialsAuth;
     }
-    public void setisRefreshTokenauth(boolean isrefreshTokenauth) {
+    public void setRefreshTokenauth(boolean isrefreshTokenauth) {
         this.isrefreshTokenauth = isrefreshTokenauth;
     }
 }

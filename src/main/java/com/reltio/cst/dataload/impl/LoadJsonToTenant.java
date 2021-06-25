@@ -64,7 +64,6 @@ public class LoadJsonToTenant {
         flag[0] = true;
 
         Properties properties = new Properties();
-
         try {
             String propertyFilePath = args[0];
             if (!new File(propertyFilePath).exists()) {
@@ -179,8 +178,8 @@ public class LoadJsonToTenant {
             if (args != null && args.length > 1) {
                 refreshToken_cmd = getStringValue(args[1]+"RefreshToken");
             }
-            if (isEmpty(refreshToken_cmd) && isEmpty(dataloaderInput.getUsername()) && isEmpty(dataloaderInput.getPassword())){
-                logger.error("Please pass either Username & Password in Properties File or RefreshToken as an command line argument");
+            if (isEmpty(refreshToken_cmd) && isEmpty(dataloaderInput.getUsername()) && isEmpty(dataloaderInput.getPassword()) && isEmpty(properties.getProperty("CLIENT_CREDENTIALS"))){
+                logger.info("Please pass either Username & Password or CLIENT_CREDENTIALS in Properties File or RefreshToken as an command line argument");
                 return;
             }
                 ReltioAPIService reltioAPIService;
@@ -188,9 +187,12 @@ public class LoadJsonToTenant {
                 if (isEmpty(refreshToken) && !isEmpty(dataloaderInput.getUsername()) && !isEmpty(dataloaderInput.getPassword())) {
                     //final ReltioAPIService reltioAPIService = Util.getReltioService(properties,refreshToken);
                     reltioAPIService = Util.getReltioService(properties, null);
-                } else {
+                } else if (!isEmpty(refreshToken)) {
 
                      reltioAPIService = Util.getReltioService(properties, refreshToken);
+                }
+                else  {
+                    reltioAPIService = Util.getReltioService(properties, refreshToken);
                 }
             //ReltioAPIService reltioAPIService = null;
             final ProcessTrackerService processTrackerService = new ProcessTrackerService(dataloaderInput,
