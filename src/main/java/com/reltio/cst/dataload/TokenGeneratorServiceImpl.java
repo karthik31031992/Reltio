@@ -189,7 +189,7 @@ public class TokenGeneratorServiceImpl extends Thread implements TokenGeneratorS
     private String getAccessTokenByRefreshToken(String url, String refreshToken, int retryCount) throws APICallFailureException, GenericException {
         String accessToken;
         try {
-            logger.info("Getting New Token Using Refresh Token..", refreshToken);
+            logger.info("Getting New Token Using Refresh Token..");
             accessToken = this.doAuthAPICall(url, "grant_type=refresh_token&refresh_token=" + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8.name()), retryCount);
             if (accessToken.equals("Invalid refresh token")) {
                 logger.info("Invalid Refresh Token.. Will Try again with new refresh token..");

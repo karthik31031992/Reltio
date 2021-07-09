@@ -16,12 +16,13 @@ import com.reltio.cst.dataload.processtracker.domain.Metrics;
 import com.reltio.cst.dataload.processtracker.domain.MetricsAttributes;
 import com.reltio.cst.dataload.processtracker.domain.ProcessTrackerAttributes;
 import com.reltio.cst.dataload.processtracker.domain.ProcessTrackerObject;
-import com.reltio.cst.dataload.util.mail.SendMail;
+//import com.reltio.cst.dataload.util.mail.SendMail;
 import com.reltio.cst.exception.handler.GenericException;
 import com.reltio.cst.exception.handler.ReltioAPICallFailureException;
 import com.reltio.cst.service.ReltioAPIService;
 import com.reltio.file.ReltioCSVFileWriter;
 import com.reltio.file.ReltioFileWriter;
+import com.reltio.file.ReltioS3CSVFileWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,7 +44,7 @@ public class ProcessTrackerService {
     private DataloaderInput dataloaderInput;
     private ReltioAPIService reltioAPIService;
     private String pcURI;
-    private SendMail sendMail;
+    //private SendMail sendMail;
 
     public ProcessTrackerService(DataloaderInput dataloaderInput,
                                  ReltioAPIService reltioAPIService) throws GenericException,
@@ -52,7 +53,7 @@ public class ProcessTrackerService {
         this.dataloaderInput = dataloaderInput;
         this.processTrackerObject = new ProcessTrackerObject();
         this.reltioAPIService = reltioAPIService;
-        this.sendMail = new SendMail();
+        //this.sendMail = new SendMail();
         if (dataloaderInput.isProcessTrackerCreated()) {
             createInitialProcessTracker();
         }
@@ -264,15 +265,24 @@ public class ProcessTrackerService {
             throws GenericException, ReltioAPICallFailureException, IOException {
 
         if (isLastUpdate) {
-            if (!dataloaderInput.getDataloadErrorsMap().isEmpty()) {
+            if (!dataloaderInput.getDataloadErrorsMap().isEmpty() && dataloaderInput.getInputfilelocation().equalsIgnoreCase("s3")) {
                 String failedLogFileName = dataloaderInput
                         .getFailedRecordsFileName() + "_failurelog.csv";
+                //ReltioFileWriter failureLog;
+                ReltioFileWriter failureLog = new ReltioS3CSVFileWriter(dataloaderInput.getBucket(),failedLogFileName,dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion());
+                createFailureLogFile(failureLog, dataloaderInput);
+                dataloaderInput.setFailedLogFileName(failedLogFileName);
+            }
+            else if (!dataloaderInput.getDataloadErrorsMap().isEmpty()) {
+                String failedLogFileName = dataloaderInput
+                        .getFailedRecordsFileName() + "_failurelog.csv";
+                //ReltioFileWriter failureLog;
                 ReltioFileWriter failureLog = new ReltioCSVFileWriter(failedLogFileName);
                 createFailureLogFile(failureLog, dataloaderInput);
                 dataloaderInput.setFailedLogFileName(failedLogFileName);
             }
 
-            sendMail.send(dataloaderInput);
+           // sendMail.send(dataloaderInput);
         }
         sendProcessTrackerUpdate();
     }

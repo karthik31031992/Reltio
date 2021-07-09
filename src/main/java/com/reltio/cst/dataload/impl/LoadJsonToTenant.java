@@ -26,13 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -50,6 +45,9 @@ public class LoadJsonToTenant {
 
     public static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
     private static final Logger logger = LogManager.getLogger(LoadJsonToTenant.class.getName());
+    private static String errorDetailMessage;
+    private String result;
+    //private static ReltioFileWriter reltioFileWriter;
 
     public static void main(String[] args) throws Exception {
 
@@ -101,12 +99,11 @@ public class LoadJsonToTenant {
 
         try {
             String inputfile = dataloaderInput.getInputfilelocation();
+            ReltioFileWriter reltioFileWriter;
             if (inputfile.equalsIgnoreCase("S3")) {
-                //final ReltioFileWriter reltioFileWriter = new ReltioFlatFileWriter(
-                //        dataloaderInput.getFailedRecordsFileName());
-                ReltioS3FlatFileWriter reltioFileWriter = new ReltioS3FlatFileWriter(dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion(), dataloaderInput.getBucket(), dataloaderInput.getFailedRecordsFileName());
+                 reltioFileWriter  = new ReltioS3FlatFileWriter(dataloaderInput.getBucket(), dataloaderInput.getFailedRecordsFileName(),dataloaderInput.getAwsKey(),dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion());
             } else {
-                ReltioFileWriter reltioFileWriter = new ReltioFlatFileWriter(
+                 reltioFileWriter  = new ReltioFlatFileWriter(
                         dataloaderInput.getFailedRecordsFileName());
             }
 
@@ -153,18 +150,18 @@ public class LoadJsonToTenant {
             if (inputfile.equalsIgnoreCase("S3")) {
                 if (dataloaderInput.getJsonFileType().equalsIgnoreCase(JSON_FILE_TYPE_PIPE)) {
                     fileReader = new ReltioS3FlatFileReader(dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion(), dataloaderInput.getBucket(), dataloaderInput.getFileName(), "|",
-                            StandardCharsets.UTF_8.name());
+                            StandardCharsets.UTF_8.name(),'\u0000','\u0000');
                 } else {
                     fileReader = new ReltioS3FlatFileReader(dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion(), dataloaderInput.getBucket(), dataloaderInput.getFileName(), "|",
-                            StandardCharsets.UTF_8.name());
+                            StandardCharsets.UTF_8.name(),'\u0000','\u0000');
                 }
             } else {
                 if (dataloaderInput.getJsonFileType().equalsIgnoreCase(JSON_FILE_TYPE_PIPE)) {
                     fileReader = new ReltioFlatFileReader(dataloaderInput.getFileName(), "|",
-                            StandardCharsets.UTF_8.name());
+                            StandardCharsets.UTF_8.name(),'\u0000','\u0000');
                 } else {
                     fileReader = new ReltioFlatFileReader(dataloaderInput.getFileName(), "|",
-                            StandardCharsets.UTF_8.name());
+                            StandardCharsets.UTF_8.name(),'\u0000','\u0000');
                 }
 
             }
@@ -179,7 +176,7 @@ public class LoadJsonToTenant {
                 refreshToken_cmd = getStringValue(args[1]+"RefreshToken");
             }
             if (isEmpty(refreshToken_cmd) && isEmpty(dataloaderInput.getUsername()) && isEmpty(dataloaderInput.getPassword()) && isEmpty(properties.getProperty("CLIENT_CREDENTIALS"))){
-                logger.info("Please pass either Username & Password or CLIENT_CREDENTIALS in Properties File or RefreshToken as an command line argument");
+                logger.error("Please pass either Username & Password or CLIENT_CREDENTIALS in Properties File or RefreshToken as an command line argument");
                 return;
             }
                 ReltioAPIService reltioAPIService;
@@ -210,13 +207,14 @@ public class LoadJsonToTenant {
             List<Future<Long>> futures = new ArrayList<>();
             if (inputfile.equalsIgnoreCase("S3")) {
 
-                //ReltioCSVFileWriter uriWriter = new ReltioCSVFileWriter(dataloaderInput.getUriFilePath());
-                uriWriter = new ReltioS3CSVFileWriter(dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion(), dataloaderInput.getBucket(), dataloaderInput.getUriFilePath());
+
+                uriWriter = new ReltioS3CSVFileWriter(dataloaderInput.getBucket(), dataloaderInput.getUriFilePath(),dataloaderInput.getAwsKey(), dataloaderInput.getAwsSecretKey(), dataloaderInput.getRegion());
             } else {
                 uriWriter = new ReltioCSVFileWriter(dataloaderInput.getUriFilePath());
             }
 
-            ReltioFileWriter reltioFileWriter = null;
+
+
             while (!eof) {
 
                 try {
@@ -255,7 +253,7 @@ public class LoadJsonToTenant {
                 for (int threadNum = futures.size(); threadNum < dataloaderInput.getThreadCount()
                         * MAX_QUEUE_SIZE_MULTIPLICATOR; threadNum++) {
                     inputRecords.clear();
-                    for (int k = 0; k < dataloaderInput.getGroupsCount(); k++) {
+                     for (int k = 0; k < dataloaderInput.getGroupsCount(); k++) {
                         String[] nextEntity = null;
 
                         try {
@@ -408,6 +406,7 @@ public class LoadJsonToTenant {
 
                                     List<ReltioDataloadErrors> dataloadErrors = dataloaderInput.getDataloadErrorsMap()
                                             .get(e.getErrorCode());
+
                                     ReltioDataloadErrors reltioDataloadError = new ReltioDataloadErrors();
 
                                     if (dataloadErrors == null) {
@@ -526,8 +525,8 @@ public class LoadJsonToTenant {
      * @throws ReltioAPICallFailureException
      * @throws IOException
      */
-    private static void processResponse(String result, DataloaderInput dataloaderInput, String stringToSend, ReltioFileWriter uriWriter,
-                                        List<Object> totalRecordsSent, int currentCount, ReltioFileWriter reltioFileWriter, ProcessTrackerService processTrackerService) throws GenericException, ReltioAPICallFailureException, IOException {
+    private static <string> void processResponse(String result, DataloaderInput dataloaderInput, String stringToSend, ReltioFileWriter uriWriter,
+                                                 List<Object> totalRecordsSent, int currentCount, ReltioFileWriter reltioFileWriter, ProcessTrackerService processTrackerService) throws GenericException, ReltioAPICallFailureException, IOException {
 
         List<Object> failedRecords = new ArrayList<Object>();
         List<ReltioDataloadResponse> dataloadResponses = new ArrayList<>();
@@ -591,6 +590,7 @@ public class LoadJsonToTenant {
                         Object failedRec = totalRecordsSent.get(reltioDataloadResponse.getIndex());
                         failedRecords.add(failedRec);
                         ReltioDataloadErrors dataloadErrors = reltioDataloadResponse.getErrors();
+                        errorDetailMessage = reltioDataloadResponse.getErrors().getErrorDetailMessage();
                         ReltioCrosswalkObject crosswalkObject = GSON
                                 .fromJson(GSON.toJson(failedRec), ReltioCrosswalkObject.class);
 
@@ -620,12 +620,20 @@ public class LoadJsonToTenant {
 
 
         if (failCcount > 0) {
-            logger.info("Success entities=" + sucCount + "|Total Sent entities="
-                    + currentCount + "| Failed Entity Count=" + failCcount + "|" + "ERROR:"
-                    + result + "\nFailure Count: " + failCcount + "|"
+            logger.info("============= Current Load  status ======================== ");
+            logger.info("Total Sent entities="
+                    + currentCount + "| Success entities=" + sucCount + "| Failed Entity Count=" + failCcount );
+            /*logger.info( "Warning:"
+                    + result );
+                    /*+ "\nFailure Count: " + failCcount + "|"
+                    + GSON.toJson(failedRecords) + "\n============================================================"); */
+            logger.info("Failure Count: " + failCcount + "|"
                     + GSON.toJson(failedRecords));
-            reltioFileWriter.writeToFile(
-                    "Failure Count: " + failCcount + "|" + GSON.toJson(failedRecords));
+            logger.info("============================================================");
+
+                reltioFileWriter.writeToFile( "|" +
+                        "Failure Count: " + failCcount + "|" + GSON.toJson(failedRecords));
+
 
             for (Entry<Integer, List<ReltioDataloadErrors>> errorMap : dataloaderInput
                     .getDataloadErrorsMap().entrySet()) {
@@ -638,11 +646,15 @@ public class LoadJsonToTenant {
                             "Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
                     System.exit(-1);
                 }
+
             }
 
         } else {
-            logger.info("Success entities=" + sucCount + "|Total Sent entities="
-                    + currentCount);
+            logger.info("============= Current Load  status =========================" );
+            logger.info( "Total Sent entities="
+                    + currentCount + "| Success entities=" + sucCount );
+            logger.info("============================================================");
+
         }
 
 
@@ -706,7 +718,7 @@ public class LoadJsonToTenant {
             }
 
             if (!response.getSuccessful()) {
-                logger.error("Operation is not successful");
+                logger.info("Operation is not successful");
                 continue;
             }
 

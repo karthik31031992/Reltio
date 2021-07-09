@@ -1,0 +1,2 @@
+﻿"Crosswalk Type","Crosswalk Value","Error Code","Error Message","Error Detailed Message"
+"configuration/sources/Exigo","100338123","160","Invalid attribute format specification for configuration/entityTypes/Customer/attributes/DoB","Invalid attribute value specification for configuration/entityTypes/Customer/attributes/DoB"
