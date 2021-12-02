@@ -45,10 +45,7 @@ import static com.reltio.cst.dataload.DataloadConstants.GSON;
 import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_ARRAY;
 import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_PIPE;
 import static com.reltio.cst.dataload.DataloadConstants.MAX_FAILURE_COUNT;
-import static com.reltio.cst.dataload.util.DataloadFunctions.printDataloadPerformance;
-import static com.reltio.cst.dataload.util.DataloadFunctions.sendEntities;
-import static com.reltio.cst.dataload.util.DataloadFunctions.waitForTasksReady;
-import static com.reltio.cst.dataload.util.DataloadFunctions.waitForTenantStatus;
+import static com.reltio.cst.dataload.util.DataloadFunctions.*;
 
 public class LoadJsonToTenant {
 
@@ -180,6 +177,10 @@ public class LoadJsonToTenant {
                 try {
                     totalQueueWaitingTime += waitForTenantStatus(apiUrl, executorService, reltioAPIService,
                             dataloaderInput.getTenantId());
+                    dataloaderInput.addThrottlingWaitTime(waitForThrottling(dataloaderInput, reltioAPIService));
+                    if (dataloaderInput.getThrottlingWaitTime() > dataloaderInput.getTotalMaxThrottlingWaitTime()) {
+                        throw new GenericException("Dataload failed, total quotas wait time is more than " + dataloaderInput.getTotalMaxThrottlingWaitTime());
+                    }
                 } catch (GenericException | InterruptedException e2) {
                     logger.debug(e2);
                     dataloaderInput.setLastUpdateTime(sdf.format(System.currentTimeMillis()));
@@ -197,7 +198,7 @@ public class LoadJsonToTenant {
                     System.exit(-1);
                 }
 
-                List<Object> inputRecords = new ArrayList<>();
+                final List<LoadBatch> throttledLoadBatches = new ArrayList<>();
                 boolean isArray;
                 int jsonIndex = 0;
                 if (dataloaderInput.getJsonFileType().equalsIgnoreCase(JSON_FILE_TYPE_PIPE)) {
@@ -212,73 +213,77 @@ public class LoadJsonToTenant {
                 // time when part of tasks are done and part are still pending...
                 for (int threadNum = futures.size(); threadNum < dataloaderInput.getThreadCount()
                         * MAX_QUEUE_SIZE_MULTIPLICATOR; threadNum++) {
-                    inputRecords.clear();
-                    for (int k = 0; k < dataloaderInput.getGroupsCount(); k++) {
-                        String[] nextEntity = null;
+                    LoadBatch<Object> nextLoadBatch;
+                    if (throttledLoadBatches.size() > 0) {
+                        nextLoadBatch = throttledLoadBatches.remove(0);
+                    } else {
+                        nextLoadBatch = new LoadBatch<>();
+                        for (int k = 0; k < dataloaderInput.getGroupsCount(); k++) {
+                            String[] nextEntity = null;
 
-                        try {
-                            nextEntity = fileReader.readLine();
-                        } catch (Exception e) {
-                            logger.error(e.getMessage());
-                            logger.debug(e);
-                            nextEntity = fileReader.readLine();
-                        }
-                        if (nextEntity == null) {
-                            eof = true;
-                            break;
-                        }
+                            try {
+                                nextEntity = fileReader.readLine();
+                            } catch (Exception e) {
+                                logger.error(e.getMessage());
+                                logger.debug(e);
+                                nextEntity = fileReader.readLine();
+                            }
+                            if (nextEntity == null) {
+                                eof = true;
+                                break;
+                            }
 
-                        if (nextEntity.length == (jsonIndex + 1)) {
-                            if (isArray) {
+                            if (nextEntity.length == (jsonIndex + 1)) {
+                                if (isArray) {
+                                    try {
+                                        List<Object> recordsInLine = GSON.fromJson(nextEntity[jsonIndex],
+                                                new TypeToken<List<Object>>() {
+                                                }.getType());
+                                        nextLoadBatch.addAll(recordsInLine);
+                                        count = count + recordsInLine.size();
+                                    } catch (Exception e) {
+                                        count = count + 1;
+                                        DataloadFunctions.invalidJSonError("Invalid JSON|" + nextEntity[jsonIndex],
+                                                dataloaderInput, reltioFileWriter);
+                                    }
+                                } else {
+                                    try {
+
+                                        Object recordInLine = GSON.fromJson(nextEntity[jsonIndex], Object.class);
+                                        nextLoadBatch.add(recordInLine);
+                                        count = count + 1;
+
+                                    } catch (Exception e) {
+                                        count = count + 1;
+                                        DataloadFunctions.invalidJSonError("Invalid JSON|" + nextEntity[jsonIndex],
+                                                dataloaderInput, reltioFileWriter);
+                                    }
+
+                                }
+                            } else {
+
+                                String line = nextEntity[jsonIndex];
+                                for (int i = jsonIndex + 1; i < nextEntity.length; i++) {
+                                    line += "|" + nextEntity[i];
+                                }
                                 try {
-                                    List<Object> recordsInLine = GSON.fromJson(nextEntity[jsonIndex],
-                                            new TypeToken<List<Object>>() {
-                                            }.getType());
-                                    inputRecords.addAll(recordsInLine);
+                                    List<Object> recordsInLine = GSON.fromJson(line, new TypeToken<List<Object>>() {
+                                    }.getType());
+                                    nextLoadBatch.addAll(recordsInLine);
                                     count = count + recordsInLine.size();
                                 } catch (Exception e) {
                                     count = count + 1;
                                     DataloadFunctions.invalidJSonError("Invalid JSON|" + nextEntity[jsonIndex],
                                             dataloaderInput, reltioFileWriter);
                                 }
-                            } else {
-                                try {
-
-                                    Object recordInLine = GSON.fromJson(nextEntity[jsonIndex], Object.class);
-                                    inputRecords.add(recordInLine);
-                                    count = count + 1;
-
-                                } catch (Exception e) {
-                                    count = count + 1;
-                                    DataloadFunctions.invalidJSonError("Invalid JSON|" + nextEntity[jsonIndex],
-                                            dataloaderInput, reltioFileWriter);
-                                }
 
                             }
-                        } else {
-
-                            String line = nextEntity[jsonIndex];
-                            for (int i = jsonIndex + 1; i < nextEntity.length; i++) {
-                                line += "|" + nextEntity[i];
-                            }
-                            try {
-                                List<Object> recordsInLine = GSON.fromJson(line, new TypeToken<List<Object>>() {
-                                }.getType());
-                                inputRecords.addAll(recordsInLine);
-                                count = count + recordsInLine.size();
-                            } catch (Exception e) {
-                                count = count + 1;
-                                DataloadFunctions.invalidJSonError("Invalid JSON|" + nextEntity[jsonIndex],
-                                        dataloaderInput, reltioFileWriter);
-                            }
-
                         }
                     }
 
-                    if (inputRecords.size() > 0) {
-                        final List<Object> totalRecordsSent = new ArrayList<>();
-                        totalRecordsSent.addAll(inputRecords);
-                        final String stringToSend = GSON.toJson(totalRecordsSent);
+                    if (nextLoadBatch.size() > 0) {
+                        final LoadBatch<Object> loadBatchToSend = new LoadBatch<Object>(nextLoadBatch.getObjects());
+                        final String stringToSend = GSON.toJson(loadBatchToSend.getObjects());
                         final int currentCount = count;
 
                         futures.add(executorService.submit(new Callable<Long>() {
@@ -288,11 +293,10 @@ public class LoadJsonToTenant {
                                 long startTime = System.currentTimeMillis();
                                 try {
 
-                                    String result = sendEntities(apiUrl, GSON.toJson(totalRecordsSent),
+                                    String result = sendEntities(apiUrl, GSON.toJson(loadBatchToSend.getObjects()),
                                             reltioAPIService);
 
-
-                                    processResponse(result, dataloaderInput, stringToSend, uriWriter, totalRecordsSent, currentCount, reltioFileWriter, processTrackerService);
+                                    processResponse(result, dataloaderInput, stringToSend, uriWriter, loadBatchToSend.getObjects(), currentCount, reltioFileWriter, processTrackerService);
 
 
                                     long updateTime = System.currentTimeMillis() - pStartTime[0];
@@ -359,53 +363,60 @@ public class LoadJsonToTenant {
                                     }
 
                                 } catch (ReltioAPICallFailureException e) {
+                                    if ((!dataloaderInput.isWaitForThrottlingEnabled()) && (e.getErrorCode() != 429)) {
+                                        // Generic error processing
+                                        List<ReltioCrosswalkObject> crosswalkObjects = GSON.fromJson(stringToSend,
+                                                new TypeToken<List<ReltioCrosswalkObject>>() {
+                                                }.getType());
+                                        dataloaderInput.addFailureCount(crosswalkObjects.size());
 
-                                    List<ReltioCrosswalkObject> crosswalkObjects = GSON.fromJson(stringToSend,
-                                            new TypeToken<List<ReltioCrosswalkObject>>() {
-                                            }.getType());
-                                    dataloaderInput.addFailureCount(crosswalkObjects.size());
+                                        List<ReltioDataloadErrors> dataloadErrors = dataloaderInput.getDataloadErrorsMap()
+                                                .get(e.getErrorCode());
+                                        ReltioDataloadErrors reltioDataloadError = new ReltioDataloadErrors();
 
-                                    List<ReltioDataloadErrors> dataloadErrors = dataloaderInput.getDataloadErrorsMap()
-                                            .get(e.getErrorCode());
-                                    ReltioDataloadErrors reltioDataloadError = new ReltioDataloadErrors();
-
-                                    if (dataloadErrors == null) {
-                                        dataloadErrors = new ArrayList<>();
-                                    }
-                                    for (ReltioCrosswalkObject crosswalkObject : crosswalkObjects) {
-                                        reltioDataloadError.setErrorCode(e.getErrorCode());
-                                        reltioDataloadError.setErrorMessage(e.getErrorResponse());
-                                        reltioDataloadError
-                                                .setCrosswalkType(crosswalkObject.getCrosswalks().get(0).getType());
-                                        reltioDataloadError.setCrosswalkValue(
-                                                (String) crosswalkObject.getCrosswalks().get(0).getValue());
-                                        dataloadErrors.add(reltioDataloadError);
-                                    }
-                                    dataloaderInput.getDataloadErrorsMap().put(e.getErrorCode(), dataloadErrors);
-                                    for (Entry<Integer, List<ReltioDataloadErrors>> errorMap : dataloaderInput
-                                            .getDataloadErrorsMap().entrySet()) {
-                                        if (errorMap.getValue().size() > MAX_FAILURE_COUNT) {
-                                            dataloaderInput.setLastUpdateTime(sdf.format(System.currentTimeMillis()));
-                                            dataloaderInput.setStatus("Aborted");
-                                            try {
-                                                processTrackerService.sendProcessTrackerUpdate(true);
-                                            } catch (IOException | GenericException
-                                                    | ReltioAPICallFailureException e1) {
-                                                logger.error("failed to update Process tracker", e1.getMessage());
-
-                                            }
-                                            logger.error(
-                                                    "Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
-                                            System.exit(-1);
+                                        if (dataloadErrors == null) {
+                                            dataloadErrors = new ArrayList<>();
                                         }
-                                    }
+                                        for (ReltioCrosswalkObject crosswalkObject : crosswalkObjects) {
+                                            reltioDataloadError.setErrorCode(e.getErrorCode());
+                                            reltioDataloadError.setErrorMessage(e.getErrorResponse());
+                                            reltioDataloadError
+                                                    .setCrosswalkType(crosswalkObject.getCrosswalks().get(0).getType());
+                                            reltioDataloadError.setCrosswalkValue(
+                                                    (String) crosswalkObject.getCrosswalks().get(0).getValue());
+                                            dataloadErrors.add(reltioDataloadError);
+                                        }
+                                        dataloaderInput.getDataloadErrorsMap().put(e.getErrorCode(), dataloadErrors);
+                                        for (Entry<Integer, List<ReltioDataloadErrors>> errorMap : dataloaderInput
+                                                .getDataloadErrorsMap().entrySet()) {
+                                            if (errorMap.getValue().size() > MAX_FAILURE_COUNT) {
+                                                dataloaderInput.setLastUpdateTime(sdf.format(System.currentTimeMillis()));
+                                                dataloaderInput.setStatus("Aborted");
+                                                try {
+                                                    processTrackerService.sendProcessTrackerUpdate(true);
+                                                } catch (IOException | GenericException
+                                                        | ReltioAPICallFailureException e1) {
+                                                    logger.error("failed to update Process tracker", e1.getMessage());
 
-                                    try {
-                                        reltioFileWriter.writeToFile(DataloadConstants.FAILURE_LOG_KEY + stringToSend);
-                                    } catch (IOException e1) {
-                                        logger.error(e1.getMessage());
-                                    }
+                                                }
+                                                logger.error(
+                                                        "Killing process as there are lot of failures while loading the data. Please verify the JSON and relaod again. More details can be found in the Process Tracker Enitity on the tenant: ");
+                                                System.exit(-1);
+                                            }
+                                        }
 
+                                        try {
+                                            reltioFileWriter.writeToFile(DataloadConstants.FAILURE_LOG_KEY + stringToSend);
+                                        } catch (IOException e1) {
+                                            logger.error(e1.getMessage());
+                                        }
+                                    } else { // Throttling support
+                                        dataloaderInput.addThrottledRequest();
+                                        logger.warn(dataloaderInput.getTotalThrottledRequests() + " requests returned 429 response " +
+                                                "please look at tenant quotas balance, requests would be repeated with delays to avoid system heavy pressure");
+                                        throttledLoadBatches.add(loadBatchToSend);
+                                        dataloaderInput.addThrottlingWaitTime(System.currentTimeMillis() - startTime);
+                                    }
                                 } catch (IOException e) {
                                     logger.error(e.getMessage());
                                 }
@@ -425,8 +436,8 @@ public class LoadJsonToTenant {
                         dataloaderInput.getThreadCount() * (MAX_QUEUE_SIZE_MULTIPLICATOR / 2));
 
                 printDataloadPerformance(executorService.getCompletedTaskCount() * dataloaderInput.getGroupsCount(),
-                        totalFuturesExecutionTime, totalQueueWaitingTime, dataloaderInput.getProgramStartTime(),
-                        dataloaderInput.getThreadCount());
+                        totalFuturesExecutionTime, totalQueueWaitingTime, dataloaderInput.getThrottlingWaitTime(), dataloaderInput.getProgramStartTime(),
+                        dataloaderInput.getThreadCount(), dataloaderInput.getTotalThrottledRequests());
             }
             totalFuturesExecutionTime += waitForTasksReady(futures, 0);
             dataloaderInput.setTotalRecordsCount(
@@ -441,7 +452,7 @@ public class LoadJsonToTenant {
             logger.info("All data send to API. Program will not wait for Queue to get Empty.");
 
             printDataloadPerformance(dataloaderInput.getTotalRecordsCount(), totalFuturesExecutionTime,
-                    totalQueueWaitingTime, dataloaderInput.getProgramStartTime(), dataloaderInput.getThreadCount());
+                    totalQueueWaitingTime, dataloaderInput.getThrottlingWaitTime(), dataloaderInput.getProgramStartTime(), dataloaderInput.getThreadCount(), dataloaderInput.getTotalThrottledRequests());
 
             String status = "";
             if (dataloaderInput.getFailedRecordsCount() > 0 && dataloaderInput.getSuccessRecordsCount() > 0) {

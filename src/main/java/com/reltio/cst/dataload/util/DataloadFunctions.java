@@ -2,6 +2,7 @@ package com.reltio.cst.dataload.util;
 
 import com.google.gson.Gson;
 import com.reltio.cst.dataload.DataloadConstants;
+import com.reltio.cst.dataload.domain.CreditsBalance;
 import com.reltio.cst.dataload.domain.DataloaderInput;
 import com.reltio.cst.dataload.domain.ReltioDataloadErrors;
 import com.reltio.cst.dataload.domain.StatusResponse;
@@ -189,8 +190,8 @@ public class DataloadFunctions {
     }
 
     public static void printDataloadPerformance(long totalTasksExecuted,
-                                                long totalTasksExecutionTime, long totalQueueWaitTime,
-                                                long programStartTime, long numberOfThreads) {
+                                                long totalTasksExecutionTime, long totalQueueWaitTime, long totalQuotasWaitingTime,
+                                                long programStartTime, long numberOfThreads, int numberOfThrottledRequests) {
         logger.info("[Performance]: ============= Current performance status ("
                 + new Date().toString() + ") =============");
         long finalTime = System.currentTimeMillis() - programStartTime;
@@ -198,6 +199,10 @@ public class DataloadFunctions {
                 + finalTime);
         logger.info("[Performance]:  Total queue waiting time : "
                 + totalQueueWaitTime);
+        logger.info("[Performance]:  Total quotas waiting time : "
+                + totalQuotasWaitingTime);
+        logger.info("[Performance]:  Total number of requests repeated after 429 error : "
+                + numberOfThrottledRequests);
         logger.info("[Performance]:  Entities sent: "
                 + totalTasksExecuted);
         logger.info("[Performance]:  Total OPS (Entities sent / Time spent from program start): "
@@ -215,6 +220,10 @@ public class DataloadFunctions {
                 + finalTime);
         logPerformance.info("[Performance]:  Total queue waiting time : "
                 + totalQueueWaitTime);
+        logPerformance.info("[Performance]:  Total quotas waiting time : "
+                + totalQuotasWaitingTime);
+        logPerformance.info("[Performance]:  Total number of requests repeated after 429 error : "
+                + numberOfThrottledRequests);
         logPerformance.info("[Performance]:  Entities sent: "
                 + totalTasksExecuted);
         logPerformance.info("[Performance]:  Total OPS (Entities sent / Time spent from program start): "
@@ -318,6 +327,44 @@ public class DataloadFunctions {
         return 0l;
     }
 
+    public static long waitForThrottling(DataloaderInput dataloaderInput, ReltioAPIService reltioAPIService) {
+        if (!dataloaderInput.isWaitForThrottlingEnabled()) {
+            return 0l;
+        }
+
+        long time = System.currentTimeMillis();
+        long startTimeToMeasureResult = 0l;
+        try {
+            int tryNumber = 1;
+            while (System.currentTimeMillis() - time < dataloaderInput.getMaxThrottlingWaitTime()) {
+                CreditsBalance tenantCreditsBalance =
+                        requestTenantCredits(dataloaderInput.getBaseDataloadURL() + "/", reltioAPIService, dataloaderInput.getTenantId());
+                if (tenantCreditsBalance.getPrimaryBalance() != null && tenantCreditsBalance.getPrimaryBalance().getStandardSyncCredits() != null &&
+                        tenantCreditsBalance.getPrimaryBalance().getStandardSyncCredits() < dataloaderInput.getCreditsThresholdPercentage()) {
+                    try {
+                        startTimeToMeasureResult = System.currentTimeMillis();
+                        logger.info("Waiting for positive tenant balance to continue processing requests current balance is " +
+                                tenantCreditsBalance.getPrimaryBalance().getStandardSyncCredits() + "%, threshold is " + dataloaderInput.getCreditsThresholdPercentage() + "%");
+                        Thread.sleep(Math.min(((1 << tryNumber) * dataloaderInput.getBaseThrottlingWaitPeriod()), dataloaderInput.getMaxThrottlingWaitTime()));
+                    } catch (InterruptedException ie) {
+                        break;
+                    }
+                    tryNumber++;
+                    continue;
+                }
+                break;
+            }
+        } catch (Exception e) {
+            int failures = dataloaderInput.creditsRequestFailed();
+            logger.warn("Failed to get tenant credits for " + failures + " number of times...", e);
+            if (failures > dataloaderInput.getMaxCreditRequestsFailures()) {
+                logger.error("Failed to get tenant credits for " + failures + " number of times. Disable waiting for throttling...", e);
+                dataloaderInput.setWaitForThrottlingEnabled(false);
+            }
+        }
+        return startTimeToMeasureResult > 0 ? (System.currentTimeMillis() - startTimeToMeasureResult) : 0;
+    }
+
     public static String sendEntities(String srcUrl, String stringToSend,
                                       ReltioAPIService reltioAPIService) throws GenericException,
             ReltioAPICallFailureException {
@@ -341,4 +388,9 @@ public class DataloadFunctions {
 
     }
 
+    public static CreditsBalance requestTenantCredits(String srcUrl, ReltioAPIService reltioAPIService, String tenantID) throws Exception {
+        String url = srcUrl + "monitoring/balance";
+        String responseStr = reltioAPIService.get(url);
+        return gson.fromJson(responseStr, CreditsBalance.class);
+    }
 }

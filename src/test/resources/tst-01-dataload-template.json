@@ -1,0 +1,1 @@
+[{ "type": "configuration/entityTypes/HCP", "attributes": { "FirstName": [ { "value": "Ay INDEX" } ], "LastName": [ { "value": "Bolit" } ] }, "crosswalks": [ { "type": "configuration/sources/LNKD", "value": "LNKD.Dr.AyBolit.CROSSWALK" } ] } ]

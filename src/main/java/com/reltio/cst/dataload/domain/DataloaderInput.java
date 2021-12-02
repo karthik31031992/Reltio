@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.reltio.cst.dataload.DataloadConstants.DEFAULT_TIMEOUT_IN_MINUTES;
 import static com.reltio.cst.dataload.DataloadConstants.JSON_FILE_TYPE_PIPE;
@@ -65,6 +66,9 @@ public class DataloaderInput implements Serializable {
 	private Integer totalOPS;
 	private Integer totalOPSWithoutQueue;
 	private Integer timeoutInMinutes;
+	private Long totalThrottlingWaitTime = 0l;
+	private AtomicInteger totalThrottledRequests = new AtomicInteger(0);
+
 	private String log;
 	private String baseDataloadURL;
 	private boolean sendMailFlag = false;
@@ -230,7 +234,42 @@ public class DataloaderInput implements Serializable {
 		isURIrequired = Boolean.valueOf(properties.getProperty("IS_CREATED_REQUIRED","false"));
 		uriFilePath = (properties.getProperty("URI_FILE","uris.csv"));
 
+		// Initialize throttling support properties:
+
+		waitForThrottlingEnabled = getBooleanProperty(properties, "QL_SUPPORT_ENABLED", true);
+		maxThrottlingWaitTime = getLongProperty(properties, "QL_MAX_WAIT_TIME_FOR_ONE_DATALOAD_CYCLE", 300000l);
+		creditsThresholdPercentage = (int)getLongProperty(properties, "QL_QUOTA_THRESHOLD_BEFORE_PAUSE", 20l);
+		baseThrottlingWaitPeriod = getLongProperty(properties, "QL_BASE_TIME_FOR_EXPONENTIAL_BACKOFF", 1000l);
+		maxCreditRequestsFailures = (int)getLongProperty(properties, "QL_MAX_CREDIT_REQUESTS_FAILURES", 100l);;
+		totalMaxThrottlingWaitTime = getLongProperty(properties, "QL_TOTAL_WAIT_TIME_BEFORE_PROCESS_TERMINATION", (long)(1000 * 60 * 60));
 	}
+
+	static boolean getBooleanProperty(Properties properties, String name, Boolean defaultValue) {
+		boolean result = defaultValue;
+		if (checkNull(properties.getProperty(name))) {
+			try {
+				result = Boolean.parseBoolean(properties
+						.getProperty(name));
+			} catch (Exception e) {
+				logger.error("Failed to parse property " + name + ", continue with default value " + defaultValue);
+			}
+		}
+		return result;
+	}
+
+	static long getLongProperty(Properties properties, String name, Long defaultValue) {
+		long result = defaultValue;
+		if (checkNull(properties.getProperty(name))) {
+			try {
+				result = Long.parseLong(properties
+						.getProperty(name));
+			} catch (Exception e) {
+				logger.error("Failed to parse property " + name + ", continue with default value " + defaultValue);
+			}
+		}
+		return result;
+	}
+
 
 	public String getFileName() {
 		return fileName;
@@ -686,6 +725,99 @@ public class DataloaderInput implements Serializable {
 	public void setUriFilePath(String uriFilePath) {
 		this.uriFilePath = uriFilePath;
 	}
+
+	/**
+	 * Throttling support properties
+	 */
+	private boolean waitForThrottlingEnabled;
+	private long maxThrottlingWaitTime;
+	private int creditsThresholdPercentage;
+	private long baseThrottlingWaitPeriod;
+	private int maxCreditRequestsFailures;
+	private int creditsRequestFailedNumber = 0;
+	private long totalMaxThrottlingWaitTime;
+
+	public boolean isWaitForThrottlingEnabled() {
+		return waitForThrottlingEnabled;
+	}
+
+	public void setWaitForThrottlingEnabled(boolean waitForThrottlingEnabled) {
+		this.waitForThrottlingEnabled = waitForThrottlingEnabled;
+	}
+
+	public long getMaxThrottlingWaitTime() {
+		return maxThrottlingWaitTime;
+	}
+
+	public int getCreditsThresholdPercentage() {
+		return creditsThresholdPercentage;
+	}
+
+	public long getBaseThrottlingWaitPeriod() {
+		return baseThrottlingWaitPeriod;
+	}
+
+	public int creditsRequestFailed() {
+		return ++creditsRequestFailedNumber;
+	}
+
+	public int getMaxCreditRequestsFailures() {
+		return maxCreditRequestsFailures;
+	}
+
+	public void addThrottledRequest() {
+		totalThrottledRequests.incrementAndGet();
+	}
+
+	public int getTotalThrottledRequests() {
+		return totalThrottledRequests.get();
+	}
+
+	public void addThrottlingWaitTime(long time) {
+		totalThrottlingWaitTime += time;
+	}
+
+	public long getThrottlingWaitTime() {
+		return totalThrottlingWaitTime;
+	}
+
+	public long getTotalMaxThrottlingWaitTime() {
+		return totalMaxThrottlingWaitTime;
+	}
+
+
+	/*
+        if (!dataloaderInput.isWaitForThrottlingEnabled()) {
+		return 0l;
+	}
+
+	long time = System.currentTimeMillis();
+        try {
+		int tryNumber = 1;
+		while (System.currentTimeMillis() - time < dataloaderInput.getMaxThrottlingWaitTime()) {
+			CreditsBalance tenantCreditsBalance =
+					requestTenantCredits(dataloaderInput.getBaseDataloadURL() + "/", reltioAPIService, dataloaderInput.getTenantId());
+			if (tenantCreditsBalance.getPrimaryBalance() != null && tenantCreditsBalance.getPrimaryBalance().getStandardSyncCredits() != null &&
+					tenantCreditsBalance.getPrimaryBalance().getStandardAsyncCredits() > dataloaderInput.getCreditsThresholdPercentage()) {
+				try {
+					Thread.sleep((2 >> tryNumber) * dataloaderInput.getBaseThrottlingWaitPeriod());
+				} catch (InterruptedException ie) {
+					break;
+				}
+				tryNumber++;
+				continue;
+			}
+			break;
+		}
+	} catch (Exception e) {
+		int failures = dataloaderInput.creditsRequestFailed();
+		logger.warn("Failed to get tenant credits for " + failures + " number of times...", e);
+		if (failures > dataloaderInput.maxCreditRequestsFailures()) {
+			logger.error("Failed to get tenant credits for " + failures + " number of times. Disable waiting for throttling...", e);
+			dataloaderInput.setWaitForThrottlingEnabled(false);
+		}
+	}
+	*/
 
 
 }
