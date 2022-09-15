@@ -8,6 +8,37 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 
 ```
+v2.7.0
+Last Updated Date  : 20th Feb 2022
+LUB                : Aditi Verma
+Version            : 2.7.0
+Description        : https://reltio.jira.com/browse/ROCS-125
+                     Update Reltio CST Core Jar to version 1.5.1.
+
+v2.6.9
+Last Updated Date  : 5th Jan 2022
+LUB                : John Sargunam
+Version            : 2.6.9
+Description        : Updated log4J version to 2.17.1
+
+v2.6.8
+Last Updated Date  : 21st Dec 2021
+LUB                : John Sargunam
+Version            : 2.6.8
+Description        : Updated log4J version to 2.17.0
+
+v2.6.7
+Last Updated Date  : 15th Dec 2021
+LUB                : Christopher Jezorek
+Version            : 2.6.7
+Description        : Updated log4J version to 2.16.0	
+
+v2.6.4
+Last Updated Date  : 2nd Dec 2021
+LUB                : Alexey Sidelnikov
+Version            : 2.6.4
+Description        : https://reltio.jira.com/browse/RP-94776
+                     Support 429 error in data-loader utility.			 
 
 v2.6.4
 Last Updated Date  : 19th Nov 2019
