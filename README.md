@@ -8,7 +8,7 @@ The Data Loader is a tool for bulk loading entities, relations, and interactions
 
 
 ```
-v2.7.0
+v2.7.1
 Last Updated Date  : 17Feb Feb 2023
 LUB                : Shivaputrappa Patil
 Version            : 2.7.1
