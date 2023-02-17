@@ -12,7 +12,7 @@ v2.7.1
 Last Updated Date  : 17Feb Feb 2023
 LUB                : Shivaputrappa Patil
 Version            : 2.7.1
-Description        : https://reltio.jira.com/browse/ROCS-125
+Description        : https://reltio.jira.com/browse/RP-113626
                      Enhanced to populated the DVF Reject error message into failed output file
 v2.7.0
 Last Updated Date  : 20th Feb 2022
