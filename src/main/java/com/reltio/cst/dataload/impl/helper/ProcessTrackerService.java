@@ -20,6 +20,7 @@ import com.reltio.cst.dataload.util.mail.SendMail;
 import com.reltio.cst.exception.handler.GenericException;
 import com.reltio.cst.exception.handler.ReltioAPICallFailureException;
 import com.reltio.cst.service.ReltioAPIService;
+import com.reltio.cst.util.Util;
 import com.reltio.file.ReltioCSVFileWriter;
 import com.reltio.file.ReltioFileWriter;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.reltio.cst.dataload.util.DataloadFunctions.getAttribute;
 
@@ -291,16 +293,13 @@ public class ProcessTrackerService {
 
     }
 
-    private void createFailureLogFile(ReltioFileWriter failureLog,
-                                      DataloaderInput dataloaderInput) throws IOException {
+    private void createFailureLogFile(ReltioFileWriter failureLog, DataloaderInput dataloaderInput) throws IOException {
         failureLog.writeToFile(DataloadConstants.FAILED_LOG_FILE_HEADER);
         List<String[]> failedRecords = new ArrayList<>();
         String[] line;
         for (Entry<Integer, List<ReltioDataloadErrors>> failedRecErrors : dataloaderInput
                 .getDataloadErrorsMap().entrySet()) {
-
             int count = 0;
-
             for (ReltioDataloadErrors reltioDataloadErrors : failedRecErrors
                     .getValue()) {
                 count++;
@@ -310,15 +309,17 @@ public class ProcessTrackerService {
                 if (reltioDataloadErrors.getErrorCode() != null)
                     line[2] = reltioDataloadErrors.getErrorCode() + "";
                 line[3] = reltioDataloadErrors.getErrorMessage();
-                line[4] = reltioDataloadErrors.getErrorDetailMessage();
+                line[4] = Util.isEmpty(reltioDataloadErrors.getFoundErrors()) ? reltioDataloadErrors.getErrorDetailMessage()
+                        :reltioDataloadErrors.getFoundErrors().stream()
+                        .filter(foundError-> "ERROR".equals(foundError.getSeverity()))
+                        .map(foundError-> foundError.getErrorMessage())
+                        .collect(Collectors.joining(";"));
                 failedRecords.add(line);
                 if (count % 100 == 0) {
                     failureLog.writeToFile(failedRecords);
                     failedRecords.clear();
                 }
-
             }
-
         }
 
         failureLog.writeToFile(failedRecords);

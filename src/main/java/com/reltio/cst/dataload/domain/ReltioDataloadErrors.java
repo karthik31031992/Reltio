@@ -1,11 +1,15 @@
 package com.reltio.cst.dataload.domain;
 
+import java.util.List;
+
 public class ReltioDataloadErrors {
 
 	private String severity;
 	private String errorMessage;
 	private String errorDetailMessage;
 	private Integer errorCode;
+
+	private List<ReltioDataloadErrors> foundErrors;
 
 	private String crosswalkType;
 	private String crosswalkValue;
@@ -100,4 +104,12 @@ public class ReltioDataloadErrors {
 		this.crosswalkValue = crosswalkValue;
 	}
 
+	public List<ReltioDataloadErrors> getFoundErrors() {
+		return foundErrors;
+	}
+
+	public void setFoundErrors(List<ReltioDataloadErrors> foundErrors) {
+		this.foundErrors = foundErrors;
+	}
 }
+
