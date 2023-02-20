@@ -104,10 +104,17 @@ public class ReltioDataloadErrors {
 		this.crosswalkValue = crosswalkValue;
 	}
 
+	/**
+	 * list of errors produced
+	 * */
 	public List<ReltioDataloadErrors> getFoundErrors() {
 		return foundErrors;
 	}
 
+	/**
+	 * @param foundErrors
+	 *            the foundErrors to set
+	 */
 	public void setFoundErrors(List<ReltioDataloadErrors> foundErrors) {
 		this.foundErrors = foundErrors;
 	}

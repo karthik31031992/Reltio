@@ -309,11 +309,7 @@ public class ProcessTrackerService {
                 if (reltioDataloadErrors.getErrorCode() != null)
                     line[2] = reltioDataloadErrors.getErrorCode() + "";
                 line[3] = reltioDataloadErrors.getErrorMessage();
-                line[4] = Util.isEmpty(reltioDataloadErrors.getFoundErrors()) ? reltioDataloadErrors.getErrorDetailMessage()
-                        :reltioDataloadErrors.getFoundErrors().stream()
-                        .filter(foundError-> "ERROR".equals(foundError.getSeverity()))
-                        .map(foundError-> foundError.getErrorMessage())
-                        .collect(Collectors.joining(";"));
+                line[4] =  buildErrorDetailMessage(reltioDataloadErrors);
                 failedRecords.add(line);
                 if (count % 100 == 0) {
                     failureLog.writeToFile(failedRecords);
@@ -324,6 +320,19 @@ public class ProcessTrackerService {
 
         failureLog.writeToFile(failedRecords);
         failureLog.close();
+    }
 
+    /**
+     * @param reltioDataloadErrors
+     * @return errormessage returns the data load error found in API
+     * */
+    private static String buildErrorDetailMessage(ReltioDataloadErrors reltioDataloadErrors) {
+        if (Util.isEmpty(reltioDataloadErrors.getFoundErrors())) {
+            return reltioDataloadErrors.getErrorDetailMessage();
+        }
+        return reltioDataloadErrors.getFoundErrors().stream()
+                .filter(foundError -> "ERROR".equals(foundError.getSeverity()))
+                .map(ReltioDataloadErrors::getErrorMessage)
+                .collect(Collectors.joining(";"));
     }
 }
